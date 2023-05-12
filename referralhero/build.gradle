@@ -10,7 +10,8 @@ android {
     defaultConfig {
         minSdk 19
         targetSdk 33
-
+        versionCode 1
+        versionName "0.0.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
     }
@@ -19,6 +20,12 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            versionNameSuffix '0.0.1'
+        }
+        lintOptions {
+            versionNameSuffix '0.0.1'
         }
     }
     compileOptions {
@@ -40,7 +47,7 @@ publishing {
         release(MavenPublication) {
             groupId = 'com.github.Jayden-ais'
             artifactId = 'Referral-Hero-Sdk'
-            version = '0.0.0'
+            version = '0.0.1'
             afterEvaluate {
                 from components.release
             }
