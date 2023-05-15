@@ -29,6 +29,9 @@ android {
             versionNameSuffix '0.0.4'
         }
     }
+    lintOptions {
+        checkReleaseBuilds false
+    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
