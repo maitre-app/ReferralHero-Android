@@ -10,16 +10,18 @@ import java.util.Collections;
 
 
 /**
- *  we are using this class for to save data into SharedPreferences and  for display log in SDK classes
+ * we are using this class for to save data into SharedPreferences and  for display log in SDK classes
  */
 public class PrefHelper {
+    public static final String NO_STRING_VALUE = "NO_STRING_VALUE";
+    public static final String KEY_RH_ACCESS_TOKEN = "KEY_RH_ACCESS_TOKEN";
+    public static final String KEY_RH_LINK = "KEY_RH_LINK";
+    public static final String KEY_RH_CAMPAIGN_ID = "KEY_RH_CAMPAIGN_ID";
+    public static final String KEY_RH_SUBSCRIBER_ID = "KEY_RH_SUBSCRIBER_ID";
     /**
      * A {@link String} value used where no string value is available.
      */
     static final int TIMEOUT = 5500; // Default timeout is 5.5 sec
-    public static final String NO_STRING_VALUE = "NO_STRING_VALUE";
-    public static final String KEY_RH_ACCESS_TOKEN = "KEY_RH_ACCESS_TOKEN";
-    public static final String KEY_RH_CAMPAIGN_ID = "KEY_RH_CAMPAIGN_ID";
     private static final String TAG = "ReferralHeroSDK";
     private static final String SHARED_PREF_FILE = "SHARED_PREF_FILE";
     private static final String KEY_GOOGLE_PLAY_INSTALL_REFERRER_EXTRA = "rh_google_play_install_referrer_extras";
@@ -80,6 +82,47 @@ public class PrefHelper {
         prefHelper_ = null;
     }
 
+    /**
+     * <p>Creates a <b>Debug</b> message in the debugger. If debugging is disabled, this will fail silently.</p>
+     *
+     * @param message A {@link String} value containing the debug message to record.
+     */
+    public static void Debug(String message) {
+        if (!TextUtils.isEmpty(message)) {
+            Log.d(TAG, message);
+        }
+    }
+
+    /**
+     * <p>Creates a <b>Info</b> message in the debugger. If debugging is disabled, this will fail silently.</p>
+     *
+     * @param message A {@link String} value containing the INFO  message to record.
+     */
+    public static void Info(String message) {
+        if (!TextUtils.isEmpty(message)) {
+            Log.i(TAG, message);
+        }
+    }
+
+    public static void LogException(String message, Exception t) {
+        if (!TextUtils.isEmpty(message)) {
+            Log.e(TAG, message, t);
+        }
+    }
+
+    public static void LogAlways(String message) {
+        if (!TextUtils.isEmpty(message)) {
+            Log.i(TAG, message);
+        }
+    }
+
+    static void enableLogging(boolean fEnable) {
+        enableLogging_ = fEnable;
+    }
+
+    public static String getAPIBaseUrl() {
+        return "https://app.referralhero.com/api/v2/lists/";
+    }
 
     /**
      * Set the given Referral API Key  to preference. Clears the preference data if the key is a new key.
@@ -104,7 +147,7 @@ public class PrefHelper {
         return false;
     }
 
-    public  String getRhAccessTokenKey() {
+    public String getRhAccessTokenKey() {
         return getString(KEY_RH_ACCESS_TOKEN);
     }
 
@@ -131,49 +174,39 @@ public class PrefHelper {
         return false;
     }
 
-    public  String getRhCampaignID() {
+    public String getRhCampaignID() {
         return getString(KEY_RH_CAMPAIGN_ID);
     }
 
-    /**
-     * <p>Creates a <b>Debug</b> message in the debugger. If debugging is disabled, this will fail silently.</p>
-     *
-     * @param message A {@link String} value containing the debug message to record.
-     */
-    public static void Debug(String message) {
-        if (!TextUtils.isEmpty(message)) {
-            Log.d(TAG, message);
-        }
-    }
+
 
     /**
-     * <p>Creates a <b>Info</b> message in the debugger. If debugging is disabled, this will fail silently.</p>
+     * Set the given Referral Link  to preference.
      *
-     * @param message A {@link String} value containing the INFO  message to record.
+     * @param rhReferralLink A {@link String} representing Referral Link.
      */
-    public static void Info(String message) {
-        if (!TextUtils.isEmpty(message)) {
-            Log.i(TAG, message);
-        }
+    public void setRHReferralLink(String rhReferralLink) {
+        setString(KEY_RH_LINK, rhReferralLink);
     }
 
 
-    public static void LogException(String message, Exception t) {
-        if (!TextUtils.isEmpty(message)) {
-            Log.e(TAG, message, t);
-        }
+    public String getRHReferralLink() {
+        return getString(KEY_RH_LINK);
     }
 
-    public static void LogAlways(String message) {
-        if (!TextUtils.isEmpty(message)) {
-            Log.i(TAG, message);
-        }
+    /**
+     * Set the given Subscriber ID  to preference.
+     *
+     * @param rhSubscriberID A {@link String} representing Subscriber ID.
+     */
+    public void setRHSubscriberID(String rhSubscriberID) {
+        setString(KEY_RH_SUBSCRIBER_ID, rhSubscriberID);
     }
 
-    static void enableLogging(boolean fEnable) {
-        enableLogging_ = fEnable;
-    }
 
+    public String getRHSubscriberID() {
+        return getString(KEY_RH_SUBSCRIBER_ID);
+    }
     /**
      * <p>Clears all the RH referral shared preferences related .
      * </p>
@@ -183,6 +216,8 @@ public class PrefHelper {
         prefsEditor_.apply();
     }
 
+    // ALL GENERIC CALLS
+
     /**
      * Gets the app store install referrer string
      *
@@ -191,8 +226,6 @@ public class PrefHelper {
     public String getAppStoreReferrer() {
         return getString(KEY_GOOGLE_PLAY_INSTALL_REFERRER_EXTRA);
     }
-
-    // ALL GENERIC CALLS
 
     /**
      * Sets the app store install referrer string
@@ -390,25 +423,12 @@ public class PrefHelper {
         prefsEditor_.apply();
     }
 
-    public static String getAPIBaseUrl() {
-        return "https://app.referralhero.com/api/v2/lists/";
-    }
-
-    public void setAppVersion(String version) {
-        setString(KEY_APP_VERSION, version);
-    }
-
     public String getAppVersion() {
         return getString(KEY_APP_VERSION);
     }
 
-    /**
-     * <p>Sets the duration in milliseconds to override the timeout value for calls to the Branch API.</p>
-     *
-     * @param timeout The {@link Integer} value of the timeout setting in milliseconds.
-     */
-    public void setTimeout(int timeout) {
-        setInteger(KEY_TIMEOUT, timeout);
+    public void setAppVersion(String version) {
+        setString(KEY_APP_VERSION, version);
     }
 
     /**
@@ -421,6 +441,15 @@ public class PrefHelper {
      */
     public int getTimeout() {
         return getInteger(KEY_TIMEOUT, TIMEOUT);
+    }
+
+    /**
+     * <p>Sets the duration in milliseconds to override the timeout value for calls to the Branch API.</p>
+     *
+     * @param timeout The {@link Integer} value of the timeout setting in milliseconds.
+     */
+    public void setTimeout(int timeout) {
+        setInteger(KEY_TIMEOUT, timeout);
     }
 
 }

@@ -41,7 +41,7 @@
 
         <meta-data
             android:name="com.rh.sdk.uuid"
-            android:value="MF4937928cce" />
+            android:value="MF7f649ed4da" />
     </application>
 
 </manifest>

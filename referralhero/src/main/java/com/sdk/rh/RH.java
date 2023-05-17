@@ -10,16 +10,14 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.sdk.rh.networking.ApiConstants;
+import com.sdk.rh.networking.ApiResponse;
 import com.sdk.rh.networking.ReferralNetworkClient;
+import com.sdk.rh.networking.ServerCallback;
+import com.sdk.rh.networking.Subscriber;
 
-import org.json.JSONObject;
-
-import java.io.IOException;
 import java.util.HashMap;
 
 import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.Response;
 
 
 /**
@@ -37,9 +35,13 @@ public class RH {
     final PrefHelper prefHelper_;
     private final DeviceInfo deviceInfo_;
     Context context_;
-    private RHReferralRegisterSubscriberListener registerSubscriberCallback_;
     ReferralNetworkClient referralNetworkClient_;
-
+    private RHReferralRegisterSubscriberListener registerSubscriberCallback_;
+    private String email;
+    private String customDomain;
+    private String name;
+    private String phoneNumber;
+    private String referrer;
 
     public RH(@NonNull Context context) {
         this.context_ = context;
@@ -208,38 +210,74 @@ public class RH {
 
     }
 
+    public RH setEmail(String email) {
+        this.email = email;
+        return this;
+    }
+
+    public RH setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+        return this;
+    }
+
+    public RH setCustomDomain(String domain) {
+        this.customDomain = domain.trim();
+        return this;
+    }
+
+    public RH setUserName(String name) {
+        this.name = name;
+        return this;
+    }
+
+    public RH setReferrerCode(String referrerCode) {
+        this.referrer = referrerCode;
+        return this;
+    }
+
+    public void submit(RHReferralRegisterSubscriberListener callback) {
+        registerSubscriberCallback_ = callback;
+        HashMap<String, String> queryParams = new HashMap<>();
+        if (prefHelper_.getRhAccessTokenKey().equalsIgnoreCase(PrefHelper.NO_STRING_VALUE))
+            queryParams.put(ApiConstants.RequestParam.RH_API_TOKEN, RHUtil.readRhKey(context_));
+        else
+            queryParams.put(ApiConstants.RequestParam.RH_API_TOKEN, prefHelper_.getRhAccessTokenKey());
+
+        queryParams.put(ApiConstants.RequestParam.RH_UUID, prefHelper_.getRhCampaignID());
+        queryParams.put(ApiConstants.RequestParam.RH_EMAIL, this.email);
+        queryParams.put(ApiConstants.RequestParam.RH_PHONE_NUMBER, this.phoneNumber);
+        queryParams.put(ApiConstants.RequestParam.RH_NAME, this.name);
+        queryParams.put(ApiConstants.RequestParam.RH_DOMAIN, this.customDomain);
+        queryParams.put(ApiConstants.RequestParam.RH_REFERRER, this.referrer);
+
+        Log.e("Param",queryParams.toString());
+        new Thread(() -> referralNetworkClient_.callApiPost(prefHelper_.getRhCampaignID() + "/subscribers/", queryParams, Subscriber.class, new ServerCallback() {
+            @Override
+            public void onFailure(Call call, Exception exception) {
+                PrefHelper.Debug(exception.toString());
+            }
+
+            @Override
+            public  void onResponse(Call call, ApiResponse response) {
+                if (response.isSuccess()){
+                    if (response.getData()!=null){
+                        prefHelper_.setRHReferralLink(response.getData().getReferrallink());
+                        prefHelper_.setRHSubscriberID(response.getData().getId());
+                    }
+                    registerSubscriberCallback_.onSuccessCallback(response);
+                } else{
+                    prefHelper_.setRHReferralLink(PrefHelper.NO_STRING_VALUE);
+                    registerSubscriberCallback_.onFailureCallback(response);
+                }
+            }
+        })).start();
+    }
 
     public interface RHReferralRegisterSubscriberListener {
-        void onFinished(String response, RHError error);
+         void onSuccessCallback(ApiResponse response);
+
+         void onFailureCallback(ApiResponse response);
     }
-
-    public void registerSubscriber(final String idOrEmail, RHReferralRegisterSubscriberListener callback) {
-        registerSubscriberCallback_ = callback;
-        HashMap<String, String> queryParams = new HashMap<>() ;
-        queryParams.put(ApiConstants.RequestParam.RH_API_TOKEN,prefHelper_.getRhAccessTokenKey());
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                referralNetworkClient_.callApiPost(prefHelper_.getRhCampaignID()+"/subscribers/"+idOrEmail, queryParams,  new Callback() {
-                    @Override
-                    public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                        PrefHelper.Debug(e.getMessage());
-                    }
-
-                    @Override
-                    public void onResponse(@NonNull Call call, @NonNull Response response) {
-                        try {
-                            registerSubscriberCallback_.onFinished(response.body().string(),null);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                });
-            }
-        }).start();
-    }
-
 
 
 }

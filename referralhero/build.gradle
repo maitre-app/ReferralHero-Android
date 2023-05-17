@@ -11,7 +11,7 @@ android {
         minSdk 19
         targetSdk 33
         versionCode 5
-        versionName "0.0.5"
+        versionName "0.0.7"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
     }
@@ -20,13 +20,13 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            versionNameSuffix '0.0.5'
+            versionNameSuffix '0.0.7'
         }
         debug {
-            versionNameSuffix '0.0.5'
+            versionNameSuffix '0.0.7'
         }
         lintOptions {
-            versionNameSuffix '0.0.5'
+            versionNameSuffix '0.0.7'
         }
     }
     lintOptions {
@@ -41,7 +41,8 @@ android {
 
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.squareup.okhttp3:okhttp:4.9.3'
+    implementation 'com.squareup.okhttp3:okhttp:4.10.0'
+    implementation 'com.google.code.gson:gson:2.10.1'
 
 }
 
@@ -49,8 +50,8 @@ publishing {
     publications {
         release(MavenPublication) {
             groupId = 'com.github.Jayden-ais'
-            artifactId = 'Referral-Hero-Sdk'
-            version = '0.0.5'
+            artifactId = 'RHS'
+            version = '0.0.7'
             afterEvaluate {
                 from components.release
             }
