@@ -12,17 +12,21 @@ import java.util.Collections;
 /**
  *  we are using this class for to save data into SharedPreferences and  for display log in SDK classes
  */
-
 public class PrefHelper {
     /**
      * A {@link String} value used where no string value is available.
      */
-    public static final String NO_STRING_VALUE = "rh_no_value";
+    static final int TIMEOUT = 5500; // Default timeout is 5.5 sec
+    public static final String NO_STRING_VALUE = "NO_STRING_VALUE";
+    public static final String KEY_RH_ACCESS_TOKEN = "KEY_RH_ACCESS_TOKEN";
+    public static final String KEY_RH_CAMPAIGN_ID = "KEY_RH_CAMPAIGN_ID";
     private static final String TAG = "ReferralHeroSDK";
-    private static final String SHARED_PREF_FILE = "rh_referral_shared_pref";
+    private static final String SHARED_PREF_FILE = "SHARED_PREF_FILE";
     private static final String KEY_GOOGLE_PLAY_INSTALL_REFERRER_EXTRA = "rh_google_play_install_referrer_extras";
-    private static final String KEY_APP_STORE_SOURCE = "rh_app_store_source";
-    private static final String KEY_APP_SHORT_LINK = "rh_app_short_link";
+    private static final String KEY_APP_STORE_SOURCE = "KEY_APP_STORE_SOURCE";
+    private static final String KEY_APP_SHORT_LINK = "KEY_APP_SHORT_LINK";
+    private static final String KEY_APP_VERSION = "KEY_APP_VERSION";
+    private static final String KEY_TIMEOUT = "KEY_TIMEOUT";
     /**
      * Internal static variable of own type {@link PrefHelper}. This variable holds the single
      * instance used when the class is instantiated via the Singleton pattern.
@@ -47,7 +51,7 @@ public class PrefHelper {
      * @param context A reference to the {@link Context} that the application is operating
      *                within. This is normally the base context of the application.
      */
-    private PrefHelper(Context context) {
+    public PrefHelper(Context context) {
         this.appSharedPrefs_ = context.getSharedPreferences(SHARED_PREF_FILE, Context.MODE_PRIVATE);
         this.prefsEditor_ = this.appSharedPrefs_.edit();
     }
@@ -76,16 +80,83 @@ public class PrefHelper {
         prefHelper_ = null;
     }
 
+
+    /**
+     * Set the given Referral API Key  to preference. Clears the preference data if the key is a new key.
+     *
+     * @param key A {@link String} representing Referral API Key .
+     * @return A {@link Boolean} which is true if the key set is a new key. On Setting a new key need to clear all preference items.
+     */
+    public boolean setRHAccessTokenKey(String key) {
+        String currentBranchKey = getString(KEY_RH_ACCESS_TOKEN);
+        if (!currentBranchKey.equals(key)) {
+            clearPrefOnBranchKeyChange();
+            setString(KEY_RH_ACCESS_TOKEN, key);
+
+            // PrefHelper can be retrieved before RH singleton is initialized
+            if (RH.getInstance() != null) {
+               /* RH.getInstance().linkCache_.clear();
+                RH.getInstance().requestQueue_.clear();*/
+            }
+
+            return true;
+        }
+        return false;
+    }
+
+    public  String getRhAccessTokenKey() {
+        return getString(KEY_RH_ACCESS_TOKEN);
+    }
+
+    /**
+     * Set the given Referral API Key  to preference. Clears the preference data if the key is a new key.
+     *
+     * @param key A {@link String} representing Referral API Key .
+     * @return A {@link Boolean} which is true if the key set is a new key. On Setting a new key need to clear all preference items.
+     */
+    public boolean setRHCampaignID(String key) {
+        String currentBranchKey = getString(KEY_RH_CAMPAIGN_ID);
+        if (!currentBranchKey.equals(key)) {
+            clearPrefOnBranchKeyChange();
+            setString(KEY_RH_CAMPAIGN_ID, key);
+
+            // PrefHelper can be retrieved before RH singleton is initialized
+            if (RH.getInstance() != null) {
+               /* RH.getInstance().linkCache_.clear();
+                RH.getInstance().requestQueue_.clear();*/
+            }
+
+            return true;
+        }
+        return false;
+    }
+
+    public  String getRhCampaignID() {
+        return getString(KEY_RH_CAMPAIGN_ID);
+    }
+
     /**
      * <p>Creates a <b>Debug</b> message in the debugger. If debugging is disabled, this will fail silently.</p>
      *
      * @param message A {@link String} value containing the debug message to record.
      */
     public static void Debug(String message) {
-        if (enableLogging_ && !TextUtils.isEmpty(message)) {
+        if (!TextUtils.isEmpty(message)) {
+            Log.d(TAG, message);
+        }
+    }
+
+    /**
+     * <p>Creates a <b>Info</b> message in the debugger. If debugging is disabled, this will fail silently.</p>
+     *
+     * @param message A {@link String} value containing the INFO  message to record.
+     */
+    public static void Info(String message) {
+        if (!TextUtils.isEmpty(message)) {
             Log.i(TAG, message);
         }
     }
+
 
     public static void LogException(String message, Exception t) {
         if (!TextUtils.isEmpty(message)) {
@@ -309,4 +380,47 @@ public class PrefHelper {
     public void setBool(String key, Boolean value) {
         prefsEditor_.putBoolean(key, value).apply();
     }
+
+    /**
+     * <p>Clears all the RH referral shared preferences related to the current key.
+     * Should be called before setting a new Referral hero-AccessToken. </p>
+     */
+    private void clearPrefOnBranchKeyChange() {
+        prefsEditor_.clear();
+        prefsEditor_.apply();
+    }
+
+    public static String getAPIBaseUrl() {
+        return "https://app.referralhero.com/api/v2/lists/";
+    }
+
+    public void setAppVersion(String version) {
+        setString(KEY_APP_VERSION, version);
+    }
+
+    public String getAppVersion() {
+        return getString(KEY_APP_VERSION);
+    }
+
+    /**
+     * <p>Sets the duration in milliseconds to override the timeout value for calls to the Branch API.</p>
+     *
+     * @param timeout The {@link Integer} value of the timeout setting in milliseconds.
+     */
+    public void setTimeout(int timeout) {
+        setInteger(KEY_TIMEOUT, timeout);
+    }
+
+    /**
+     * <p>Returns the currently set timeout value for calls to the Branch API. This will be the default
+     * SDK setting unless it has been overridden manually between Branch object instantiation and
+     * this call.</p>
+     *
+     * @return An {@link Integer} value containing the currently set timeout value in
+     * milliseconds.
+     */
+    public int getTimeout() {
+        return getInteger(KEY_TIMEOUT, TIMEOUT);
+    }
+
 }

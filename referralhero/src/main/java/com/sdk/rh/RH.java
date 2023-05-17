@@ -4,15 +4,28 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+
+import com.sdk.rh.networking.ApiConstants;
+import com.sdk.rh.networking.ReferralNetworkClient;
+
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.HashMap;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
 
 
 /**
  * Created by Jaspalsinh Gohil(Jayden) on 02-05-2023.
  */
-public class RH  {
+public class RH {
 
 
     private static Uri SHORT_LINK;
@@ -21,10 +34,18 @@ public class RH  {
      * the class during application runtime.</p>
      */
     private static RH RHReferral_;
+    final PrefHelper prefHelper_;
+    private final DeviceInfo deviceInfo_;
     Context context_;
+    private RHReferralRegisterSubscriberListener registerSubscriberCallback_;
+    ReferralNetworkClient referralNetworkClient_;
+
 
     public RH(@NonNull Context context) {
         this.context_ = context;
+        this.deviceInfo_ = new DeviceInfo(context);
+        this.prefHelper_ = new PrefHelper(context);
+        this.referralNetworkClient_ = new ReferralNetworkClient();
     }
 
 
@@ -42,13 +63,25 @@ public class RH  {
         return RHReferral_;
     }
 
-    synchronized private static RH initRHSDK(@NonNull Context context) {
+    synchronized private static RH initRHSDK(@NonNull Context context, String RHaccessToken, String RHuuid) {
         if (RHReferral_ != null) {
-            PrefHelper.Debug( "Warning, attempted to reinitialize RH SDK singleton!");
+            PrefHelper.Debug("Warning, attempted to reinitialize RH SDK singleton!");
             return RHReferral_;
         }
         RHReferral_ = new RH(context.getApplicationContext());
+        if (TextUtils.isEmpty(RHaccessToken)) {
+            PrefHelper.Debug("Warning: Please enter your access_token in your project's Manifest file!");
+            RHReferral_.prefHelper_.setRHAccessTokenKey(PrefHelper.NO_STRING_VALUE);
+        } else {
+            RHReferral_.prefHelper_.setRHAccessTokenKey(RHaccessToken);
+        }
 
+        if (TextUtils.isEmpty(RHuuid)) {
+            PrefHelper.Debug("Warning: Please enter your Campaign  uuid in your project's Manifest file!");
+            RHReferral_.prefHelper_.setRHCampaignID(PrefHelper.NO_STRING_VALUE);
+        } else {
+            RHReferral_.prefHelper_.setRHCampaignID(RHuuid);
+        }
         return RHReferral_;
     }
 
@@ -66,7 +99,7 @@ public class RH  {
     synchronized public static RH getAutoInstance(@NonNull Context context) {
         PrefHelper.Debug("Warning, attempted to getAutoInstance RH SDK singleton!");
         if (RHReferral_ == null) {
-            RHReferral_ = initRHSDK(context);
+            RHReferral_ = initRHSDK(context, RHUtil.readRhKey(context), RHUtil.readRhCampaignID(context));
             //   getPreinstallSystemData(branchReferral_, context);
         }
         return RHReferral_;
@@ -160,6 +193,11 @@ public class RH  {
         return queryValue;
     }
 
+
+    public DeviceInfo getDeviceInfo() {
+        return deviceInfo_;
+    }
+
     /**
      * Call Install Referrer here
      **/
@@ -168,6 +206,38 @@ public class RH  {
         Log.e("Referrer", "registerAppInit");
 
 
+    }
+
+
+    public interface RHReferralRegisterSubscriberListener {
+        void onFinished(String response, RHError error);
+    }
+
+    public void registerSubscriber(final String idOrEmail, RHReferralRegisterSubscriberListener callback) {
+        registerSubscriberCallback_ = callback;
+        HashMap<String, String> queryParams = new HashMap<>() ;
+        queryParams.put(ApiConstants.RequestParam.RH_API_TOKEN,prefHelper_.getRhAccessTokenKey());
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                referralNetworkClient_.callApiPost(prefHelper_.getRhCampaignID()+"/subscribers/"+idOrEmail, queryParams,  new Callback() {
+                    @Override
+                    public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                        PrefHelper.Debug(e.getMessage());
+                    }
+
+                    @Override
+                    public void onResponse(@NonNull Call call, @NonNull Response response) {
+                        try {
+                            registerSubscriberCallback_.onFinished(response.body().string(),null);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                });
+            }
+        }).start();
     }
 
 
