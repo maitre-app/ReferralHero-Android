@@ -9,7 +9,7 @@ import com.sdk.rh.RH;
 
 import com.sdk.rh.networking.ApiResponse;
 
-public class MainActivity extends AppCompatActivity implements RH.RHReferralRegisterSubscriberListener {
+public class MainActivity extends AppCompatActivity implements RH.RHReferralCallBackListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

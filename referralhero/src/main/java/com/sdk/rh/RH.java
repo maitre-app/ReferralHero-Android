@@ -1,8 +1,6 @@
 package com.sdk.rh;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
@@ -36,12 +34,16 @@ public class RH {
     private final DeviceInfo deviceInfo_;
     Context context_;
     ReferralNetworkClient referralNetworkClient_;
-    private RHReferralRegisterSubscriberListener registerSubscriberCallback_;
-    private String email;
-    private String customDomain;
-    private String name;
-    private String phoneNumber;
-    private String referrer;
+    private RHReferralCallBackListener registerSubscriberCallback_;
+    private RHReferralCallBackListener removeSubscriberCallback_;
+    private RHReferralCallBackListener trackReferralCallback_;
+    private RHReferralCallBackListener pendingReferralCallback_;
+    private RHReferralCallBackListener orgaincTrackReferralCallback_;
+    private String email = "";
+    private String customDomain = "";
+    private String name = "";
+    private String phoneNumber = "";
+    private String referrer = "";
 
     public RH(@NonNull Context context) {
         this.context_ = context;
@@ -107,95 +109,6 @@ public class RH {
         return RHReferral_;
     }
 
-    /**
-     * <p>this method to return the Short Firebase DynamicLink </p>
-     *
-     * @param yourCustomUrl      pass Custom URL as baseURL.
-     * @param firebasedomain     pass valid  Firebase Domain exmaple.page.link like this remove "https://"
-     * @param androidPackageName pass Android App PackageName for redirect to the Play Store.
-     * @param callback           callback function pass generated link into this interface.
-     */
-
-    public static void generateFirebaseShortDynamicLinkLink(Activity activity, Uri yourCustomUrl, String firebasedomain, String androidPackageName, RHLinkGenerate callback) {
-
-        /*DynamicLink dynamicLink = FirebaseDynamicLinks.getInstance().createDynamicLink().setLink(yourCustomUrl).setDynamicLinkDomain(firebasedomain)
-                // Open links with this app on Android
-                .setAndroidParameters(new DynamicLink.AndroidParameters.Builder().build())
-                // Open links with com.example.ios on iOS
-                //.setIosParameters(new DynamicLink.IosParameters.Builder("com.example.ios").build())
-                .buildDynamicLink();
-
-        Uri dynamicLinkUri = dynamicLink.getUri();
-        Log.e("main", "  Long refer " + dynamicLink.getUri());
-
-        // shorten the link
-        Task<ShortDynamicLink> shortLinkTask = FirebaseDynamicLinks.getInstance().createDynamicLink().setLongLink(dynamicLinkUri)
-                //.setLongLink(Uri.parse(sharelinktext))  // manually
-                .buildShortDynamicLink().addOnCompleteListener(activity, task -> {
-                    if (task.isSuccessful()) {
-                        // Short link created
-                        Uri shortLink = task.getResult().getShortLink();
-                        Uri flowchartLink = task.getResult().getPreviewLink();
-                        Log.e("main ", "short link " + shortLink.toString());
-                        // share app dialog
-                        callback.onLinkGenerateFinished(shortLink);
-                    } else {
-                        // Error
-                        // ...
-                        Log.e("main", " error " + task.getException());
-                    }
-                });*/
-    }
-
-    /**
-     * return URL Scheme
-     *
-     * @param uri pass Intent data
-     **/
-    public String getRHScheme(Uri uri) {
-        String queryValue = "";
-        if (uri != null) {
-            queryValue = uri.getScheme();
-        } else {
-            queryValue = "Scheme Not Found";
-        }
-        return queryValue;
-    }
-
-    /**
-     * return URL Host
-     *
-     * @param uri pass Intent data
-     **/
-    public String getRHHost(Uri uri) {
-        String queryValue = "";
-        if (uri != null) {
-            queryValue = uri.getHost();
-        } else {
-            queryValue = "Host Not Found";
-        }
-        return queryValue;
-    }
-
-    /**
-     * return Query Parameter value of Specific Key
-     *
-     * @param intent   pass Intent data
-     * @param ParamKey pass key for parameter
-     **/
-
-    public String getRHQueryParam(Intent intent, String ParamKey) {
-        String queryValue = "";
-        if (intent.getData() != null) {
-            if (intent.getData().getQueryParameters(ParamKey) != null)
-                queryValue = intent.getData().getQueryParameter(ParamKey);
-        } else {
-            queryValue = "Parameter Not Found";
-        }
-        return queryValue;
-    }
-
-
     public DeviceInfo getDeviceInfo() {
         return deviceInfo_;
     }
@@ -235,7 +148,14 @@ public class RH {
         return this;
     }
 
-    public void submit(RHReferralRegisterSubscriberListener callback) {
+
+    /**
+     * User can add this method to their signup form or any other place from where they
+     * want to add customers to the referral program
+     *
+     * @param callback -- callback call success and failure method
+     **/
+    public void submit(RHReferralCallBackListener callback) {
         registerSubscriberCallback_ = callback;
         HashMap<String, String> queryParams = new HashMap<>();
         if (prefHelper_.getRhAccessTokenKey().equalsIgnoreCase(PrefHelper.NO_STRING_VALUE))
@@ -250,7 +170,7 @@ public class RH {
         queryParams.put(ApiConstants.RequestParam.RH_DOMAIN, this.customDomain);
         queryParams.put(ApiConstants.RequestParam.RH_REFERRER, this.referrer);
 
-        Log.e("Param",queryParams.toString());
+        Log.e("Param", queryParams.toString());
         new Thread(() -> referralNetworkClient_.callApiPost(prefHelper_.getRhCampaignID() + "/subscribers/", queryParams, Subscriber.class, new ServerCallback() {
             @Override
             public void onFailure(Call call, Exception exception) {
@@ -258,14 +178,14 @@ public class RH {
             }
 
             @Override
-            public  void onResponse(Call call, ApiResponse response) {
-                if (response.isSuccess()){
-                    if (response.getData()!=null){
+            public void onResponse(Call call, ApiResponse response) {
+                if (response.isSuccess()) {
+                    if (response.getData() != null) {
                         prefHelper_.setRHReferralLink(response.getData().getReferrallink());
                         prefHelper_.setRHSubscriberID(response.getData().getId());
                     }
                     registerSubscriberCallback_.onSuccessCallback(response);
-                } else{
+                } else {
                     prefHelper_.setRHReferralLink(PrefHelper.NO_STRING_VALUE);
                     registerSubscriberCallback_.onFailureCallback(response);
                 }
@@ -273,10 +193,123 @@ public class RH {
         })).start();
     }
 
-    public interface RHReferralRegisterSubscriberListener {
-         void onSuccessCallback(ApiResponse response);
 
-         void onFailureCallback(ApiResponse response);
+    /***
+     * This method will only be used when a multistep event is selected in the goal section for
+     * the campaign.
+     * The use case for this method will be like,
+     * Referral is added with a pending status at the time of signup. When they complete the
+     * conversion event, the status is changed from pending to unconfirmed/confirmed. The
+     * mwr code (if referral is not present in the campaign with pending status) and unique
+     * identifier will be required in this method. Customers can send external data with this
+     * method like name, extra field, etc.
+     * @param callback -- callback call success and failure method
+     * **/
+    public void trackReferral(RHReferralCallBackListener callback) {
+        trackReferralCallback_ = callback;
+        HashMap<String, String> params = new HashMap<>();
+        new Thread(() -> referralNetworkClient_.callApiPost(prefHelper_.getRhCampaignID() + "/subscribers/", params, Subscriber.class, new ServerCallback() {
+            @Override
+            public void onFailure(Call call, Exception exception) {
+                PrefHelper.Debug(exception.toString());
+            }
+
+            @Override
+            public void onResponse(Call call, ApiResponse response) {
+                if (response.isSuccess()) {
+
+                } else {
+
+                }
+            }
+        })).start();
+    }
+
+    /***
+     * This method will only be used when a multistep event is selected in the goal section for
+     * the campaign.
+     * If referral code exists then It will create the user as pending referral in the campaign
+     * else nothing. Customer can send other data with this method.
+     * @param callback -- callback call success and failure method
+     * **/
+    public void pendingReferral(RHReferralCallBackListener callback) {
+        pendingReferralCallback_ = callback;
+        HashMap<String, String> params = new HashMap<>();
+        new Thread(() -> referralNetworkClient_.callApiPost(prefHelper_.getRhCampaignID() + "/subscribers/", params, Subscriber.class, new ServerCallback() {
+            @Override
+            public void onFailure(Call call, Exception exception) {
+                PrefHelper.Debug(exception.toString());
+            }
+
+            @Override
+            public void onResponse(Call call, ApiResponse response) {
+                if (response.isSuccess()) {
+
+                } else {
+
+                }
+            }
+        })).start();
+    }
+
+    /***
+     * This method will only be used when a multistep event is selected in the goal section for
+     * the campaign.
+     * We can call this method anywhere. If the referral code exists then we will save this as
+     * unconfirmed/confirmed else as an organic subscriber.
+     * @param callback -- callback call success and failure method
+     * **/
+    public void orgaincTrackReferral(RHReferralCallBackListener callback) {
+        orgaincTrackReferralCallback_ = callback;
+        HashMap<String, String> params = new HashMap<>();
+        new Thread(() -> referralNetworkClient_.callApiPost(prefHelper_.getRhCampaignID() + "/subscribers/", params, Subscriber.class, new ServerCallback() {
+            @Override
+            public void onFailure(Call call, Exception exception) {
+                PrefHelper.Debug(exception.toString());
+            }
+
+            @Override
+            public void onResponse(Call call, ApiResponse response) {
+                if (response.isSuccess()) {
+
+                } else {
+
+                }
+            }
+        })).start();
+    }
+
+
+    /***
+     * This method will only be used when user want Delete a subscriber.
+     * it is only Delete a single subscriber.
+     * @param callback  -- callback call success and failure method
+     * **/
+
+    public void removeReferralSubscriber(RHReferralCallBackListener callback) {
+        removeSubscriberCallback_ = callback;
+        HashMap<String, String> params = new HashMap<>();
+        new Thread(() -> referralNetworkClient_.callApiPost(prefHelper_.getRhCampaignID() + "/subscribers/", params, Subscriber.class, new ServerCallback() {
+            @Override
+            public void onFailure(Call call, Exception exception) {
+                PrefHelper.Debug(exception.toString());
+            }
+
+            @Override
+            public void onResponse(Call call, ApiResponse response) {
+                if (response.isSuccess()) {
+
+                } else {
+
+                }
+            }
+        })).start();
+    }
+
+    public interface RHReferralCallBackListener {
+        void onSuccessCallback(ApiResponse response);
+
+        void onFailureCallback(ApiResponse response);
     }
 
 
