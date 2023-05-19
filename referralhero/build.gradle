@@ -1,59 +1,78 @@
 plugins {
+    id 'kotlin-android'
     id 'com.android.library'
     id 'maven-publish'
+    id 'org.jetbrains.kotlin.android'
 }
 
+
+def getVersionName = { ->
+    return "0.0.7" // Replace with version Name
+}
+
+def getArtificatId = { ->
+    return "RHS" // Replace with library name ID
+}
+
+
 android {
-    namespace 'com.sdk.rh'
-    compileSdk 33
+    namespace = "com.sdk.rh"
+    compileSdk = 33
 
     defaultConfig {
-        minSdk 19
-        targetSdk 33
-        versionCode 5
-        versionName "0.0.7"
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles "consumer-rules.pro"
+        minSdk = 19
+        targetSdk = 33
+        versionCode = 5
+        versionName = getVersionName()
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            versionNameSuffix '0.0.7'
+            minifyEnabled true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            versionNameSuffix = getVersionName()
         }
         debug {
-            versionNameSuffix '0.0.7'
+            minifyEnabled true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            versionNameSuffix = getVersionName()
         }
         lintOptions {
-            versionNameSuffix '0.0.7'
+            versionNameSuffix = getVersionName()
         }
     }
+
     lintOptions {
         checkReleaseBuilds false
     }
+
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
 
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.squareup.okhttp3:okhttp:4.10.0'
-    implementation 'com.google.code.gson:gson:2.10.1'
-
+    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation("com.squareup.okhttp3:okhttp:4.10.0")
+    implementation("com.google.code.gson:gson:2.10.1")
 }
 
 publishing {
     publications {
-        release(MavenPublication) {
-            groupId = 'com.github.Jayden-ais'
-            artifactId = 'RHS'
-            version = '0.0.7'
+        bar(MavenPublication)  {
+            groupId = "com.github.Jayden-ais"
+            artifactId = "RHS"
+            version = getVersionName()
+            artifact("$buildDir/outputs/aar/${getArtificatId()}-release.aar")
             afterEvaluate {
-                from components.release
+                from(components["release"])
             }
         }
     }
