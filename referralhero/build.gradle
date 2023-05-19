@@ -67,7 +67,7 @@ dependencies {
 publishing {
     publications {
         release(MavenPublication)  {
-            groupId = "com.github.Jayden-ais"
+            groupId = "com.github.maitre-app"
             artifactId = "RHS"
             version = getVersionName()
             //artifact("$buildDir/outputs/aar/${getArtificatId()}-release.aar")
