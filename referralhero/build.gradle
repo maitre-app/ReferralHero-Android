@@ -7,7 +7,7 @@ plugins {
 
 
 def getVersionName = { ->
-    return "0.0.7" // Replace with version Name
+    return "0.0.10" // Replace with version Name
 }
 
 def getArtificatId = { ->
@@ -66,11 +66,11 @@ dependencies {
 
 publishing {
     publications {
-        bar(MavenPublication)  {
+        release(MavenPublication)  {
             groupId = "com.github.Jayden-ais"
             artifactId = "RHS"
             version = getVersionName()
-            artifact("$buildDir/outputs/aar/${getArtificatId()}-release.aar")
+            //artifact("$buildDir/outputs/aar/${getArtificatId()}-release.aar")
             afterEvaluate {
                 from(components["release"])
             }
