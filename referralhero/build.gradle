@@ -7,7 +7,7 @@ plugins {
 
 
 def getVersionName = { ->
-    return "0.0.10" // Replace with version Name
+    return "0.0.0" // Replace with version Name
 }
 
 def getArtificatId = { ->
@@ -22,7 +22,7 @@ android {
     defaultConfig {
         minSdk = 19
         targetSdk = 33
-        versionCode = 5
+        versionCode = 1
         versionName = getVersionName()
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
