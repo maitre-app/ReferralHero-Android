@@ -22,5 +22,5 @@ Add it in your root build.gradle at the end of repositories:
 Step 2. Add the dependency
 
 	dependencies {
-	        implementation 'com.github.maitre-app:RHS:$latest.release'
+	        implementation 'com.github.Jayden-ais:RHS:$latest.release'
 	}
