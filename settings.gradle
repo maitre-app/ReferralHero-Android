@@ -3,6 +3,7 @@ pluginManagement {
         google()
         mavenCentral()
         gradlePluginPortal()
+        maven { url 'https://jitpack.io' }
     }
 }
 dependencyResolutionManagement {
@@ -13,7 +14,6 @@ dependencyResolutionManagement {
         maven { url 'https://jitpack.io' }
     }
 }
-
 rootProject.name = "ReferralSdk"
 include ':app'
 include ':referralhero'
