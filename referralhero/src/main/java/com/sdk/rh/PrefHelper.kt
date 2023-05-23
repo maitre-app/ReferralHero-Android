@@ -23,6 +23,8 @@ class PrefHelper(context: Context) {
      */
     private var prefsEditor_: SharedPreferences.Editor?
 
+    var mContext: Context?
+
     /**
      *
      * Constructor with context passed from calling [android.app.Activity].
@@ -33,6 +35,7 @@ class PrefHelper(context: Context) {
     init {
         appSharedPrefs_ = context.getSharedPreferences(SHARED_PREF_FILE, Context.MODE_PRIVATE)
         prefsEditor_ = appSharedPrefs_.edit()
+        mContext = context
     }
 
     /**
@@ -451,5 +454,6 @@ class PrefHelper(context: Context) {
 
         val aPIBaseUrl: String
             get() = "https://dev.referralhero.com/api/sdk/v1/lists/"
+
     }
 }

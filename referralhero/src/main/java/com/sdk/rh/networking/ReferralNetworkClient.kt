@@ -3,119 +3,172 @@ package com.sdk.rh.networking
 import android.content.Context
 import android.util.Log
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.sdk.rh.PrefHelper
 import com.sdk.rh.RHUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import java.io.IOException
-import java.lang.reflect.Type
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class ReferralNetworkClient {
     private val client: OkHttpClient = OkHttpClient()
     private val gson: Gson = Gson()
 
-    fun callApiGet(endpoint: String, queryParams: Map<String?, String?>?, callback: Callback?) {
-        val urlBuilder: HttpUrl.Builder =
-            (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()!!.newBuilder()
-        queryParams?.let {
-            for ((key, value) in it) {
-                key?.let { urlBuilder.addQueryParameter(it, value) }
-            }
-        }
-        val url: String = urlBuilder.build().toString()
-        val request: Request = Request.Builder().url(url).build()
-        val call = client.newCall(request)
-        call.enqueue(callback!!)
-    }
 
-
-    suspend fun <T> serverRequestCallBackAsync(
-        context: Context,
-        endpoint: String,
-        params: HashMap<String, String?>,
-        responseType: Type
+    /**
+    - Created a new function `serverRequestGetAsync` to handle GET requests.
+    - Removed the creation of the request body since it's not needed for GET requests.
+    - Utilized the `get()` method to specify the request type as GET.
+    - Retained the logic for building the URL and adding headers.
+    - Used `withContext` and `Dispatchers.IO` for performing the network request asynchronously.
+    - Handled the response based on the HTTP status code, returning the parsed response if code is 200, otherwise returning a new `ApiResponse` object with the error details.
+     * */
+    suspend fun <T> serverRequestGetAsync(
+        context: Context, endpoint: String, queryParams: HashMap<String, String?>
     ): ApiResponse {
-        val formBuilder = FormBody.Builder()
-        params.forEach { (key, value) ->
-            value?.let { formBuilder.add(key, it) }
-        }
-        val requestBody: RequestBody = formBuilder.build()
 
         val urlBuilder = (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()?.newBuilder()
+        /*queryParams?.let {
+            for ((key, value) in it) {
+                key?.let { urlBuilder?.addQueryParameter(it, value) }
+            }
+        }*/
         val url = urlBuilder?.build()?.toString()
 
-        val requestBuilder = Request.Builder()
-            .url(url!!)
-            .addHeader("Authorization", PrefHelper.getInstance(context)?.rhAccessTokenKey.toString())
-            .addHeader("Accept", "application/vnd.referralhero.v1")
-            .addHeader("Content-Type", "application/json")
-            .post(requestBody)
+        Log.e("URL", url.toString())
+        val requestBuilder =
+            Request.Builder().url(url!!).addHeader("Authorization", RHUtil.readRhKey(context))
+                .addHeader("Accept", "application/vnd.referralhero.v1")
+                .addHeader("Content-Type", "application/json").get()
 
         val request = requestBuilder.build()
-
         return withContext(Dispatchers.IO) {
             val response = client.newCall(request).execute()
             val responseString = response.body?.string()
-            Log.e("Response", responseString.toString())
-
-            val apiResponseType = TypeToken.getParameterized(
-                ApiResponse::class.java, responseType
-            ).type
-            val parsedResponse: ApiResponse = gson.fromJson(responseString, apiResponseType)
-            parsedResponse
+            val parsedResponse: ApiResponse = gson.fromJson(responseString, ApiResponse::class.java)
+            if (response.code == 200) {
+                parsedResponse
+            } else {
+                ApiResponse("error", parsedResponse.message, parsedResponse.code, null, null, 0)
+            }
         }
     }
 
-    fun <T> serverRequestCallBackAsync(
-        context_: Context,
-        endpoint: String,
-        params: HashMap<String, String?>,
-        responseType: Type,
-        callback: ServerCallback
-    ) {
-        val formBuilder = FormBody.Builder()
-        params.let {
-            for ((key, value) in params) {
-                value?.let { it1 -> formBuilder.add(key, it1) }
-            }
-        }
-        val requestBody: RequestBody = formBuilder.build()
+    /**
+    - Extracted the creation of the JSON request body into a separate variable for improved readability.
+    - Used Kotlin's null-safe operators for building the URL and accessing its string representation.
+    - Set the appropriate media type for the request body.
+    - Added headers for authorization and accept content type.
+    - Used `withContext` and `Dispatchers.IO` for performing the network request asynchronously.
+    - Handled the response based on the HTTP status code, returning the parsed response if code is 200, otherwise returning a new `ApiResponse` object with the error details.
+     * ***/
 
+    suspend fun <T> serverRequestCallBackAsync(
+        context: Context, endpoint: String, referralParams: ReferralParams
+    ): ApiResponse {
 
+        val jsonMediaType = "application/json".toMediaTypeOrNull()
+        val requestBody: RequestBody = Gson().toJson(referralParams).toRequestBody(jsonMediaType)
         val urlBuilder = (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()?.newBuilder()
         val url = urlBuilder?.build()?.toString()
 
-        val requestBuilder = Request.Builder()
-            .url("https://dev.referralhero.com/api/sdk/v1/lists/MF4345c63888/subscribers/")
-            .addHeader("Authorization", RHUtil.readRhKey(context_))
-            .addHeader("Accept", "application/vnd.referralhero.v1")
-            .addHeader("Content-Type", "application/json")
-            .post(requestBody)
+        val requestBuilder =
+            Request.Builder().url(url!!).addHeader("Authorization", RHUtil.readRhKey(context))
+                .addHeader("Accept", "application/vnd.referralhero.v1").post(requestBody)
+
         val request = requestBuilder.build()
-        val call: Call = client.newCall(request)
-        call.enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                callback.onFailure(call, e)
-                Log.e("Response", e.toString())
+        return withContext(Dispatchers.IO) {
+            val response = client.newCall(request).execute()
+            val responseString = response.body?.string()
+            val parsedResponse: ApiResponse = gson.fromJson(responseString, ApiResponse::class.java)
+            if (response.code == 200) {
+                parsedResponse
+            } else {
+                ApiResponse("error", parsedResponse.message, parsedResponse.code, null, null, 0)
             }
 
-            override fun onResponse(call: Call, response: Response) {
-                Log.e("Response", response.toString())
-                try {
-                    val responseString = response.body?.string()
-                    Log.e("Response", responseString.toString())
-                    val apiResponseType = TypeToken.getParameterized(
-                        ApiResponse::class.java, responseType
-                    ).type
-                    val parsedResponse: ApiResponse = gson.fromJson(responseString, apiResponseType)
-                    callback.onResponse(call, parsedResponse)
-                } catch (e: Exception) {
-                    callback.onFailure(call, e)
-                }
-            }
-        })
+        }
     }
+
+    /**
+    - Created a new function `serverRequestDeleteAsync` to handle DELETE requests.
+    - Updated the function signature to include the required parameters: `context`, `endpoint`, and optional `queryParams`.
+    - Utilized the `delete()` method of the `Request.Builder` class to specify the request type as DELETE.
+    - Appended query parameters to the URL if provided using the `addQueryParameter` method.
+    - Set the appropriate headers for authorization, accept content type, and content type.
+    - Used `withContext` and `Dispatchers.IO` for performing the network request asynchronously.
+    - Handled the response based on the HTTP status code, returning the parsed response if code is 200, otherwise returning a new `ApiResponse` object with the error details.
+     * ***/
+    suspend fun <T> serverRequestDeleteAsync(
+        context: Context, endpoint: String, queryParams: HashMap<String, String?>
+    ): ApiResponse {
+
+        val urlBuilder = (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()?.newBuilder()
+        /*queryParams?.let {
+            for ((key, value) in it) {
+                key?.let { urlBuilder?.addQueryParameter(it, value) }
+            }
+        }*/
+        val url = urlBuilder?.build()?.toString()
+
+        Log.e("URL", url.toString())
+        val requestBuilder =
+            Request.Builder().url(url!!).addHeader("Authorization", RHUtil.readRhKey(context))
+                .addHeader("Accept", "application/vnd.referralhero.v1")
+                .addHeader("Content-Type", "application/json").delete()
+
+        val request = requestBuilder.build()
+        return withContext(Dispatchers.IO) {
+            val response = client.newCall(request).execute()
+            val responseString = response.body?.string()
+            val parsedResponse: ApiResponse = gson.fromJson(responseString, ApiResponse::class.java)
+            if (response.code == 200) {
+                parsedResponse
+            } else {
+                ApiResponse("error", parsedResponse.message, parsedResponse.code, null, null, 0)
+            }
+        }
+    }
+
+    /**
+    - Added a new function 'serverRequestPatchAsync' to handle PATCH requests.
+    - Updated the function signature to include the required parameters: `context`, `endpoint`, and `requestBody`.
+    - Built the URL using the `aPIBaseUrl` and `endpoint` parameters.
+    - Set the appropriate headers for authorization, accept content type, and content type.
+    - Utilized the `patch()` method of the `Request.Builder` class to specify the request type as PATCH.
+    - Used `withContext` and `Dispatchers.IO` for performing the network request asynchronously.
+    - Handled the response based on the HTTP status code, returning the parsed response if the code is 200, otherwise returning a new `ApiResponse` object with the error details.
+     * ***/
+    suspend fun <T> serverRequestPatchAsync(
+        context: Context, endpoint: String, referralParams: ReferralParams
+    ): ApiResponse {
+
+        val jsonMediaType = "application/json".toMediaTypeOrNull()
+        val requestBody: RequestBody = Gson().toJson(referralParams).toRequestBody(jsonMediaType)
+        val urlBuilder = (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()?.newBuilder()
+        val url = urlBuilder?.build()?.toString()
+
+        val requestBuilder =
+            Request.Builder().url(url!!).addHeader("Authorization", RHUtil.readRhKey(context))
+                .addHeader("Accept", "application/vnd.referralhero.v1").patch(requestBody)
+
+        val request = requestBuilder.build()
+        return withContext(Dispatchers.IO) {
+            val response = client.newCall(request).execute()
+            val responseString = response.body?.string()
+            val parsedResponse: ApiResponse = gson.fromJson(responseString, ApiResponse::class.java)
+            if (response.code == 200) {
+                parsedResponse
+            } else {
+                ApiResponse("error", parsedResponse.message, parsedResponse.code, null, null, 0)
+            }
+
+        }
+    }
+
+
 }

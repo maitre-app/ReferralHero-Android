@@ -4,13 +4,14 @@ import android.content.Context
 import android.net.Uri
 import android.text.TextUtils
 import android.util.Log
-import com.sdk.rh.networking.*
-import com.sdk.rh.networking.ApiConstants.RequestParam
+import com.sdk.rh.networking.ApiConstants
+import com.sdk.rh.networking.ApiResponse
+import com.sdk.rh.networking.ReferralNetworkClient
+import com.sdk.rh.networking.ReferralParams
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.Call
 
 /**
  * Created by Jaspalsinh Gohil(Jayden) on 02-05-2023.
@@ -20,15 +21,11 @@ class RH(var context_: Context) {
     val deviceInfo: DeviceInfo
     var referralNetworkClient_: ReferralNetworkClient
     private var registerSubscriberCallback_: RHReferralCallBackListener? = null
+    private var getSubscriberCallback_: RHReferralCallBackListener? = null
     private var removeSubscriberCallback_: RHReferralCallBackListener? = null
     private var trackReferralCallback_: RHReferralCallBackListener? = null
     private var pendingReferralCallback_: RHReferralCallBackListener? = null
     private var orgaincTrackReferralCallback_: RHReferralCallBackListener? = null
-    private var email = ""
-    private var customDomain = ""
-    private var name = ""
-    private var phoneNumber = ""
-    private var referrer = ""
 
     init {
         deviceInfo = DeviceInfo(context_)
@@ -43,29 +40,9 @@ class RH(var context_: Context) {
         Log.e("Referrer", "registerAppInit")
     }
 
-    fun setEmail(email: String): RH {
-        this.email = email
-        return this
-    }
 
-    fun setPhoneNumber(phoneNumber: String): RH {
-        this.phoneNumber = phoneNumber
-        return this
-    }
-
-    fun setCustomDomain(domain: String): RH {
-        customDomain = domain.trim { it <= ' ' }
-        return this
-    }
-
-    fun setUserName(name: String): RH {
-        this.name = name
-        return this
-    }
-
-    fun setReferrerCode(referrerCode: String): RH {
-        referrer = referrerCode
-        return this
+    fun getSubScriberID(): String? {
+        return prefHelper_.rHSubscriberID;
     }
 
     /**
@@ -74,17 +51,14 @@ class RH(var context_: Context) {
      *
      * @param callback -- callback call success and failure method
      */
-    fun submit(callback: RHReferralCallBackListener?) {
+    fun formSubmit(callback: RHReferralCallBackListener?, referralParams: ReferralParams) {
         registerSubscriberCallback_ = callback
-        val queryParams = buildQueryParams()
-
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val response = referralNetworkClient_.serverRequestCallBackAsync<Any>(
                     context_,
                     "${prefHelper_.rhCampaignID}/subscribers/",
-                    queryParams,
-                    Subscriber::class.java
+                    referralParams
                 )
                 withContext(Dispatchers.Main) {
                     handleResponse(response)
@@ -98,26 +72,34 @@ class RH(var context_: Context) {
         }
     }
 
-    private fun buildQueryParams(): HashMap<String, String?> {
+    fun getSubscriberByID(callback: RHReferralCallBackListener?, subscriber_id: String) {
+        registerSubscriberCallback_ = callback
         val queryParams = HashMap<String, String?>()
 
-        queryParams[RequestParam.RH_IP] = customDomain
-        queryParams[RequestParam.RH_OS] = DeviceInfo(context_).getOperatingSystem()
-        queryParams[RequestParam.RH_UUID] = prefHelper_.rhCampaignID
-        queryParams[RequestParam.RH_EMAIL] = email
-        queryParams[RequestParam.RH_PHONE_NUMBER] = phoneNumber
-        queryParams[RequestParam.RH_NAME] = name
-        queryParams[RequestParam.RH_DOMAIN] = customDomain
-        queryParams[RequestParam.RH_REFERRER] = referrer
-
-        Log.e("Param", queryParams.toString())
-        return queryParams
+        queryParams[ApiConstants.RequestParam.RH_SUBSCRIBER_ID] = subscriber_id
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = referralNetworkClient_.serverRequestGetAsync<Any>(
+                    context_,
+                    "${RHUtil.readRhCampaignID(context_)}/subscribers/${subscriber_id}",
+                    queryParams
+                )
+                withContext(Dispatchers.Main) {
+                    handleResponse(response)
+                }
+            } catch (exception: Exception) {
+                withContext(Dispatchers.Main) {
+                    PrefHelper.Debug(exception.toString())
+                    //callback?.onFailureCallback(exception)
+                }
+            }
+        }
     }
 
-    private suspend fun handleResponse(response: ApiResponse) {
-        if (response.isSuccess) {
+    fun handleResponse(response: ApiResponse) {
+        if (response.status == "ok") {
             response.data?.let {
-                prefHelper_.rHReferralLink = it.referrallink
+                prefHelper_.rHReferralLink = it.referral_link
                 prefHelper_.rHSubscriberID = it.id
             }
             registerSubscriberCallback_?.onSuccessCallback(response)
@@ -138,47 +120,8 @@ class RH(var context_: Context) {
      * method like name, extra field, etc.
      * @param callback -- callback call success and failure method
      */
-    fun trackReferral(callback: RHReferralCallBackListener?) {
-        registerSubscriberCallback_ = callback
-        val queryParams = HashMap<String, String?>()
-        if (prefHelper_.rhAccessTokenKey.equals(
-                PrefHelper.NO_STRING_VALUE,
-                ignoreCase = true
-            )
-        ) queryParams[RequestParam.RH_API_TOKEN] =
-            RHUtil.readRhKey(context_) else queryParams[RequestParam.RH_API_TOKEN] =
-            prefHelper_.rhAccessTokenKey
-        queryParams[RequestParam.RH_UUID] = prefHelper_.rhCampaignID
-        queryParams[RequestParam.RH_EMAIL] = email
-        queryParams[RequestParam.RH_PHONE_NUMBER] = phoneNumber
-        queryParams[RequestParam.RH_NAME] = name
-        queryParams[RequestParam.RH_DOMAIN] = customDomain
-        queryParams[RequestParam.RH_REFERRER] = referrer
-        Log.e("Param", queryParams.toString())
-        Thread {
-            referralNetworkClient_.serverRequestCallBackAsync<Any>(context_,
-                prefHelper_.rhCampaignID + "/subscribers/",
-                queryParams,
-                Subscriber::class.java,
-                object : ServerCallback {
-                    override fun onFailure(call: Call?, exception: Exception) {
-                        PrefHelper.Debug(exception.toString())
-                    }
+    fun trackReferral(callback: RHReferralCallBackListener?, referralParams: ReferralParams) {
 
-                    override fun onResponse(call: Call?, response: ApiResponse) {
-                        if (response.isSuccess) {
-                            if (response.data != null) {
-                                prefHelper_.rHReferralLink = response.data?.referrallink
-                                prefHelper_.rHSubscriberID = response.data?.id
-                            }
-                            registerSubscriberCallback_!!.onSuccessCallback(response)
-                        } else {
-                            prefHelper_.rHReferralLink = PrefHelper.NO_STRING_VALUE
-                            registerSubscriberCallback_!!.onFailureCallback(response)
-                        }
-                    }
-                })
-        }.start()
     }
 
     /***
@@ -189,26 +132,7 @@ class RH(var context_: Context) {
      * @param callback -- callback call success and failure method
      */
     fun pendingReferral(callback: RHReferralCallBackListener?) {
-        pendingReferralCallback_ = callback
-        val params = HashMap<String, String?>()
-        Thread {
-            referralNetworkClient_.serverRequestCallBackAsync<Any>(
-                context_,
-                prefHelper_.rhCampaignID + "/subscribers/",
-                params,
-                Subscriber::class.java,
-                object : ServerCallback {
-                    override fun onFailure(call: Call?, exception: Exception) {
-                        PrefHelper.Debug(exception.toString())
-                    }
 
-                    override fun onResponse(call: Call?, response: ApiResponse) {
-                        if (response.isSuccess) {
-                        } else {
-                        }
-                    }
-                })
-        }.start()
     }
 
     /***
@@ -220,25 +144,7 @@ class RH(var context_: Context) {
      */
     fun orgaincTrackReferral(callback: RHReferralCallBackListener?) {
         orgaincTrackReferralCallback_ = callback
-        val params = HashMap<String, String?>()
-        Thread {
-            referralNetworkClient_.serverRequestCallBackAsync<Any>(
-                context_,
-                prefHelper_.rhCampaignID + "/subscribers/",
-                params,
-                Subscriber::class.java,
-                object : ServerCallback {
-                    override fun onFailure(call: Call?, exception: Exception) {
-                        PrefHelper.Debug(exception.toString())
-                    }
 
-                    override fun onResponse(call: Call?, response: ApiResponse) {
-                        if (response.isSuccess) {
-                        } else {
-                        }
-                    }
-                })
-        }.start()
     }
 
     /***
@@ -248,25 +154,7 @@ class RH(var context_: Context) {
      */
     fun removeReferralSubscriber(callback: RHReferralCallBackListener?) {
         removeSubscriberCallback_ = callback
-        val params = HashMap<String, String?>()
-        Thread {
-            referralNetworkClient_.serverRequestCallBackAsync<Any>(
-                context_,
-                prefHelper_.rhCampaignID + "/subscribers/",
-                params,
-                Subscriber::class.java,
-                object : ServerCallback {
-                    override fun onFailure(call: Call?, exception: Exception) {
-                        PrefHelper.Debug(exception.toString())
-                    }
 
-                    override fun onResponse(call: Call?, response: ApiResponse) {
-                        if (response.isSuccess) {
-                        } else {
-                        }
-                    }
-                })
-        }.start()
     }
 
     interface RHReferralCallBackListener {
