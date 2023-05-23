@@ -6,6 +6,10 @@ import android.text.TextUtils
 import android.util.Log
 import com.sdk.rh.networking.*
 import com.sdk.rh.networking.ApiConstants.RequestParam
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.Call
 
 /**
@@ -72,6 +76,70 @@ class RH(var context_: Context) {
      */
     fun submit(callback: RHReferralCallBackListener?) {
         registerSubscriberCallback_ = callback
+        val queryParams = buildQueryParams()
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = referralNetworkClient_.serverRequestCallBackAsync<Any>(
+                    context_,
+                    "${prefHelper_.rhCampaignID}/subscribers/",
+                    queryParams,
+                    Subscriber::class.java
+                )
+                withContext(Dispatchers.Main) {
+                    handleResponse(response)
+                }
+            } catch (exception: Exception) {
+                withContext(Dispatchers.Main) {
+                    PrefHelper.Debug(exception.toString())
+                    //callback?.onFailureCallback(exception)
+                }
+            }
+        }
+    }
+
+    private fun buildQueryParams(): HashMap<String, String?> {
+        val queryParams = HashMap<String, String?>()
+
+        queryParams[RequestParam.RH_IP] = customDomain
+        queryParams[RequestParam.RH_OS] = DeviceInfo(context_).getOperatingSystem()
+        queryParams[RequestParam.RH_UUID] = prefHelper_.rhCampaignID
+        queryParams[RequestParam.RH_EMAIL] = email
+        queryParams[RequestParam.RH_PHONE_NUMBER] = phoneNumber
+        queryParams[RequestParam.RH_NAME] = name
+        queryParams[RequestParam.RH_DOMAIN] = customDomain
+        queryParams[RequestParam.RH_REFERRER] = referrer
+
+        Log.e("Param", queryParams.toString())
+        return queryParams
+    }
+
+    private suspend fun handleResponse(response: ApiResponse) {
+        if (response.isSuccess) {
+            response.data?.let {
+                prefHelper_.rHReferralLink = it.referrallink
+                prefHelper_.rHSubscriberID = it.id
+            }
+            registerSubscriberCallback_?.onSuccessCallback(response)
+        } else {
+            prefHelper_.rHReferralLink = PrefHelper.NO_STRING_VALUE
+            registerSubscriberCallback_?.onFailureCallback(response)
+        }
+    }
+
+    /***
+     * This method will only be used when a multistep event is selected in the goal section for
+     * the campaign.
+     * The use case for this method will be like,
+     * Referral is added with a pending status at the time of signup. When they complete the
+     * conversion event, the status is changed from pending to unconfirmed/confirmed. The
+     * mwr code (if referral is not present in the campaign with pending status) and unique
+     * identifier will be required in this method. Customers can send external data with this
+     * method like name, extra field, etc.
+     * @param callback -- callback call success and failure method
+     */
+    fun trackReferral(callback: RHReferralCallBackListener?) {
+        registerSubscriberCallback_ = callback
         val queryParams = HashMap<String, String?>()
         if (prefHelper_.rhAccessTokenKey.equals(
                 PrefHelper.NO_STRING_VALUE,
@@ -88,7 +156,7 @@ class RH(var context_: Context) {
         queryParams[RequestParam.RH_REFERRER] = referrer
         Log.e("Param", queryParams.toString())
         Thread {
-            referralNetworkClient_.callApiPost<Any>(
+            referralNetworkClient_.serverRequestCallBackAsync<Any>(context_,
                 prefHelper_.rhCampaignID + "/subscribers/",
                 queryParams,
                 Subscriber::class.java,
@@ -116,39 +184,6 @@ class RH(var context_: Context) {
     /***
      * This method will only be used when a multistep event is selected in the goal section for
      * the campaign.
-     * The use case for this method will be like,
-     * Referral is added with a pending status at the time of signup. When they complete the
-     * conversion event, the status is changed from pending to unconfirmed/confirmed. The
-     * mwr code (if referral is not present in the campaign with pending status) and unique
-     * identifier will be required in this method. Customers can send external data with this
-     * method like name, extra field, etc.
-     * @param callback -- callback call success and failure method
-     */
-    fun trackReferral(callback: RHReferralCallBackListener?) {
-        trackReferralCallback_ = callback
-        val params = HashMap<String, String?>()
-        Thread {
-            referralNetworkClient_.callApiPost<Any>(
-                prefHelper_.rhCampaignID + "/subscribers/",
-                params,
-                Subscriber::class.java,
-                object : ServerCallback {
-                    override fun onFailure(call: Call?, exception: Exception) {
-                        PrefHelper.Debug(exception.toString())
-                    }
-
-                    override fun onResponse(call: Call?, response: ApiResponse) {
-                        if (response.isSuccess) {
-                        } else {
-                        }
-                    }
-                })
-        }.start()
-    }
-
-    /***
-     * This method will only be used when a multistep event is selected in the goal section for
-     * the campaign.
      * If referral code exists then It will create the user as pending referral in the campaign
      * else nothing. Customer can send other data with this method.
      * @param callback -- callback call success and failure method
@@ -157,7 +192,8 @@ class RH(var context_: Context) {
         pendingReferralCallback_ = callback
         val params = HashMap<String, String?>()
         Thread {
-            referralNetworkClient_.callApiPost<Any>(
+            referralNetworkClient_.serverRequestCallBackAsync<Any>(
+                context_,
                 prefHelper_.rhCampaignID + "/subscribers/",
                 params,
                 Subscriber::class.java,
@@ -186,7 +222,8 @@ class RH(var context_: Context) {
         orgaincTrackReferralCallback_ = callback
         val params = HashMap<String, String?>()
         Thread {
-            referralNetworkClient_.callApiPost<Any>(
+            referralNetworkClient_.serverRequestCallBackAsync<Any>(
+                context_,
                 prefHelper_.rhCampaignID + "/subscribers/",
                 params,
                 Subscriber::class.java,
@@ -213,7 +250,8 @@ class RH(var context_: Context) {
         removeSubscriberCallback_ = callback
         val params = HashMap<String, String?>()
         Thread {
-            referralNetworkClient_.callApiPost<Any>(
+            referralNetworkClient_.serverRequestCallBackAsync<Any>(
+                context_,
                 prefHelper_.rhCampaignID + "/subscribers/",
                 params,
                 Subscriber::class.java,

@@ -4,29 +4,42 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 
 import com.sdk.rh.RH;
-
 import com.sdk.rh.networking.ApiResponse;
 
-public class MainActivity extends AppCompatActivity implements RH.RHReferralCallBackListener {
+
+public class MainActivity extends AppCompatActivity implements RH.RHReferralCallBackListener, View.OnClickListener {
+
+
+    Button btnAdd,btnTrack,btnOrgTrack,btnPending,btnConfirm,btnGetCampaign,btnGetReferral,btnCapture;
+    TextView txtReponse;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        RH.getAutoInstance(this);
 
+        btnAdd = findViewById(R.id.btnAdd);
+        btnTrack = findViewById(R.id.btnTrack);
+        btnOrgTrack = findViewById(R.id.btnOrgTrack);
+        btnPending = findViewById(R.id.btnPending);
+        btnConfirm = findViewById(R.id.btnConfirm);
+        btnGetCampaign = findViewById(R.id.btnGetCampaign);
+        btnGetReferral = findViewById(R.id.btnGetReferral);
+        btnCapture = findViewById(R.id.btnCapture);
 
-        // To add a subscriber manually  simply call method below function and
-        // send the user information such as email address and name.
-        RH.getInstance().
-                setEmail("Rajesh@test.com").
-                setCustomDomain("https://wongazoma.aistechnolabs.info/action").
-                setUserName("Rajesh").setPhoneNumber("+918200108568").
-                setReferrerCode("").
-                submit(this);
-
+        btnAdd.setOnClickListener(this);
+        btnTrack.setOnClickListener(this);
+        btnOrgTrack.setOnClickListener(this);
+        btnPending.setOnClickListener(this);
+        btnConfirm.setOnClickListener(this);
+        btnGetCampaign.setOnClickListener(this);
+        btnGetReferral.setOnClickListener(this);
+        btnCapture.setOnClickListener(this);
 
     }
 
@@ -38,5 +51,20 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
     @Override
     public void onFailureCallback(ApiResponse response) {
         Log.e("onFailureCallback", response.getStatus());
+    }
+
+    @Override
+    public void onClick(View v) {
+
+        switch (v.getId()){
+            case R.id.btnAdd:
+                RH.getInstance().
+                        setEmail("Android123@test.com").
+                        setCustomDomain("https://wongazoma.aistechnolabs.info/action").
+                        setUserName("Rajesh").setPhoneNumber("+918200108568").
+                        setReferrerCode("").
+                        submit(this);
+                break;
+        }
     }
 }

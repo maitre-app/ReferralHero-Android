@@ -4,22 +4,70 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:layout_margin="16dp"
+    android:orientation="vertical"
     tools:context="com.example.referralsdk.MainActivity">
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/btnAdd"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Register Subscriber"
-       />
+        android:text="Create a Subscriber/Referral" />
 
     <Button
-        android:id="@+id/button2"
+        android:id="@+id/btnTrack"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:text="Remove Subscriber"
-        />
+        android:text="Track Referral" />
+
+    <Button
+        android:id="@+id/btnPending"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="Pending Referral" />
+
+    <Button
+        android:id="@+id/btnOrgTrack"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="Organic Track Referral" />
+
+    <Button
+        android:id="@+id/btnGetCampaign"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="Get Leaderboard of the Campaign" />
+
+    <Button
+        android:id="@+id/btnConfirm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="Confirm Referral ( Convert Status from unconfirmed to confirmed )" />
+
+    <Button
+        android:id="@+id/btnGetReferral"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="Get My Referrals from Subscriber id" />
+
+    <Button
+        android:id="@+id/btnCapture"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="Capture Share" />
+
+
+    <TextView
+        android:id="@+id/txtReponse"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="20dp"
+        android:text="Response: " />
 </LinearLayout>

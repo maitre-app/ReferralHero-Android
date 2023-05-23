@@ -57,8 +57,6 @@ class PrefHelper(context: Context) {
         return false
     }
 
-    val rhAccessTokenKey: String?
-        get() = getString(KEY_RH_ACCESS_TOKEN)
 
     /**
      * Set the given Referral API Key  to preference. Clears the preference data if the key is a new key.
@@ -95,6 +93,10 @@ class PrefHelper(context: Context) {
         set(rhReferralLink) {
             setString(KEY_RH_LINK, rhReferralLink)
         }
+
+    val rhAccessTokenKey: String?
+        get() = getString(KEY_RH_ACCESS_TOKEN)
+
 
     /**
      * Set the given Subscriber ID  to preference.
@@ -448,6 +450,6 @@ class PrefHelper(context: Context) {
         }
 
         val aPIBaseUrl: String
-            get() = "https://app.referralhero.com/api/v2/lists/"
+            get() = "https://dev.referralhero.com/api/sdk/v1/lists/"
     }
 }
