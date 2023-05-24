@@ -33,10 +33,6 @@ interface ApiConstants {
     }
 
     enum class OperationType {
-        DELETE,
-        ADD,
-        GET,
-        TRACK,
-        UPDATE
+        DELETE, ADD, GET, TRACK, CAPTURE, UPDATE
     }
 }

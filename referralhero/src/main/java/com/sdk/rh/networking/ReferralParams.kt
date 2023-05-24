@@ -21,5 +21,6 @@ class ReferralParams {
     var ipAddress: String? = null
     var osType: String? = null
     var screenSize: String? = null
+    var social: String? = null
 
 }

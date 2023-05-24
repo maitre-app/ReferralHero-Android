@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
         ReferralParams referralParams = new ReferralParams();
         switch (v.getId()) {
             case R.id.btnAdd:
-                referralParams.setEmail("AndiDev234as@gmail.com");
+                referralParams.setEmail("Jayden@gmail.com");
                 referralParams.setDomain("https://wongazoma.aistechnolabs.info/action");
                 referralParams.setName("AndiDev");
                 referralParams.setReferrer("");
@@ -81,7 +81,17 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
                 RH.getInstance().deleteSubscriberByID(this);
                 break;
             case R.id.btnUpdate:
+                referralParams.setName("AndiDevOps");
                 RH.getInstance().updateSubscriberByID(this, referralParams);
+                break;
+            case R.id.btnTrack:
+                referralParams.setEmail("Jayden@gmail.com");
+                referralParams.setName("AndiDev");
+                RH.getInstance().trackReferral(this, referralParams);
+                break;
+            case R.id.btnCapture:
+                referralParams.setSocial("Whatsapp");
+                RH.getInstance().clickCapture(this, referralParams);
                 break;
 
         }

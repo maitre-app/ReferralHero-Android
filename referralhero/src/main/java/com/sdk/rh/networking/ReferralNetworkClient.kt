@@ -1,7 +1,6 @@
 package com.sdk.rh.networking
 
 import android.content.Context
-import android.util.Log
 import com.google.gson.Gson
 import com.sdk.rh.PrefHelper
 import com.sdk.rh.RHUtil
@@ -32,10 +31,7 @@ class ReferralNetworkClient {
     ): ApiResponse {
 
         val urlBuilder = (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()?.newBuilder()
-
         val url = urlBuilder?.build()?.toString()
-
-        Log.e("URL", url.toString())
         val requestBuilder =
             Request.Builder().url(url!!).addHeader("Authorization", RHUtil.readRhKey(context))
                 .addHeader("Accept", "application/vnd.referralhero.v1")
@@ -76,7 +72,6 @@ class ReferralNetworkClient {
             Request.Builder().url(url!!).addHeader("Authorization", RHUtil.readRhKey(context))
                 .addHeader("Accept", "application/vnd.referralhero.v1").post(requestBody)
 
-        Log.e("URL", url)
         val request = requestBuilder.build()
         return withContext(Dispatchers.IO) {
             val response = client.newCall(request).execute()

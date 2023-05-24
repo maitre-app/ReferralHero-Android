@@ -3,7 +3,6 @@ package com.sdk.rh
 import android.content.Context
 import android.net.Uri
 import android.text.TextUtils
-import android.util.Log
 import com.sdk.rh.networking.ApiConstants
 import com.sdk.rh.networking.ApiResponse
 import com.sdk.rh.networking.ReferralNetworkClient
@@ -21,28 +20,14 @@ class RH(var context_: Context) {
     val deviceInfo: DeviceInfo
     var referralNetworkClient_: ReferralNetworkClient
     private var registerSubscriberCallback_: RHReferralCallBackListener? = null
-    private var getSubscriberCallback_: RHReferralCallBackListener? = null
     private var removeSubscriberCallback_: RHReferralCallBackListener? = null
     private var trackReferralCallback_: RHReferralCallBackListener? = null
-    private var pendingReferralCallback_: RHReferralCallBackListener? = null
-    private var orgaincTrackReferralCallback_: RHReferralCallBackListener? = null
+
 
     init {
         deviceInfo = DeviceInfo(context_)
         prefHelper_ = PrefHelper(context_)
         referralNetworkClient_ = ReferralNetworkClient()
-    }
-
-    /**
-     * Call Install Referrer here
-     */
-    fun registerAppInit() {
-        Log.e("Referrer", "registerAppInit")
-    }
-
-
-    fun getSubScriberID(): String? {
-        return prefHelper_.rHSubscriberID
     }
 
     /**
@@ -64,7 +49,6 @@ class RH(var context_: Context) {
             } catch (exception: Exception) {
                 withContext(Dispatchers.Main) {
                     PrefHelper.Debug(exception.toString())
-                    //callback?.onFailureCallback(exception)
                 }
             }
         }
@@ -72,8 +56,6 @@ class RH(var context_: Context) {
 
     fun getSubscriberByID(callback: RHReferralCallBackListener?) {
         registerSubscriberCallback_ = callback
-
-        Log.e("ID", prefHelper_.rHSubscriberID.toString())
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val response = referralNetworkClient_.serverRequestGetAsync<Any>(
@@ -86,7 +68,6 @@ class RH(var context_: Context) {
             } catch (exception: Exception) {
                 withContext(Dispatchers.Main) {
                     PrefHelper.Debug(exception.toString())
-                    //callback?.onFailureCallback(exception)
                 }
             }
         }
@@ -111,7 +92,6 @@ class RH(var context_: Context) {
             } catch (exception: Exception) {
                 withContext(Dispatchers.Main) {
                     PrefHelper.Debug(exception.toString())
-                    //callback?.onFailureCallback(exception)
                 }
             }
         }
@@ -173,7 +153,30 @@ class RH(var context_: Context) {
             } catch (exception: Exception) {
                 withContext(Dispatchers.Main) {
                     PrefHelper.Debug(exception.toString())
-                    //callback?.onFailureCallback(exception)
+                }
+            }
+        }
+    }
+
+    /**
+     * It is used to send the Share event to the RH. It means If user call this method
+     * with any params like facebook, messenger, etc. We capture this as the share in our system.
+     * **/
+    fun clickCapture(callback: RHReferralCallBackListener?, referralParams: ReferralParams) {
+        trackReferralCallback_ = callback
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = referralNetworkClient_.serverRequestCallBackAsync<Any>(
+                    context_,
+                    "${RHUtil.readRhCampaignID(context_)}/subscribers/${prefHelper_.rHSubscriberID}/click_capture",
+                    referralParams
+                )
+                withContext(Dispatchers.Main) {
+                    handleResponse(response, ApiConstants.OperationType.CAPTURE.ordinal)
+                }
+            } catch (exception: Exception) {
+                withContext(Dispatchers.Main) {
+                    PrefHelper.Debug(exception.toString())
                 }
             }
         }
@@ -205,30 +208,6 @@ class RH(var context_: Context) {
             prefHelper_.rHReferralLink = PrefHelper.NO_STRING_VALUE
             registerSubscriberCallback_?.onFailureCallback(response)
         }
-    }
-
-
-    /***
-     * This method will only be used when a multistep event is selected in the goal section for
-     * the campaign.
-     * If referral code exists then It will create the user as pending referral in the campaign
-     * else nothing. Customer can send other data with this method.
-     * @param callback -- callback call success and failure method
-     */
-    fun pendingReferral(callback: RHReferralCallBackListener?) {
-
-    }
-
-    /***
-     * This method will only be used when a multistep event is selected in the goal section for
-     * the campaign.
-     * We can call this method anywhere. If the referral code exists then we will save this as
-     * unconfirmed/confirmed else as an organic subscriber.
-     * @param callback -- callback call success and failure method
-     */
-    fun orgaincTrackReferral(callback: RHReferralCallBackListener?) {
-        orgaincTrackReferralCallback_ = callback
-
     }
 
 
@@ -306,7 +285,6 @@ class RH(var context_: Context) {
             if (RHReferral_ == null) {
                 RHReferral_ =
                     initRHSDK(context, RHUtil.readRhKey(context), RHUtil.readRhCampaignID(context))
-                //   getPreinstallSystemData(branchReferral_, context);
             }
             return RHReferral_
         }
