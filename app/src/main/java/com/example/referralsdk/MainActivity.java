@@ -15,7 +15,7 @@ import com.sdk.rh.networking.ReferralParams;
 public class MainActivity extends AppCompatActivity implements RH.RHReferralCallBackListener, View.OnClickListener {
 
 
-    Button btnAdd, btnGet, btnTrack, btnOrgTrack, btnPending, btnConfirm, btnGetCampaign, btnGetReferral, btnCapture;
+    Button btnAdd, btnGet, btnDelete, btnUpdate, btnTrack, btnOrgTrack, btnPending, btnConfirm, btnGetCampaign, btnGetReferral, btnCapture;
     TextView txtReponse;
 
     @Override
@@ -25,6 +25,8 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
 
         btnAdd = findViewById(R.id.btnAdd);
         btnGet = findViewById(R.id.btnGet);
+        btnDelete = findViewById(R.id.btnDelete);
+        btnUpdate = findViewById(R.id.btnUpdate);
         btnTrack = findViewById(R.id.btnTrack);
         btnOrgTrack = findViewById(R.id.btnOrgTrack);
         btnPending = findViewById(R.id.btnPending);
@@ -43,6 +45,8 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
         btnGetCampaign.setOnClickListener(this);
         btnGetReferral.setOnClickListener(this);
         btnCapture.setOnClickListener(this);
+        btnDelete.setOnClickListener(this);
+        btnUpdate.setOnClickListener(this);
 
     }
 
@@ -61,8 +65,7 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
         ReferralParams referralParams = new ReferralParams();
         switch (v.getId()) {
             case R.id.btnAdd:
-
-                referralParams.setEmail("AndiDev@gmail.com");
+                referralParams.setEmail("AndiDev234as@gmail.com");
                 referralParams.setDomain("https://wongazoma.aistechnolabs.info/action");
                 referralParams.setName("AndiDev");
                 referralParams.setReferrer("");
@@ -72,8 +75,15 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
                 break;
 
             case R.id.btnGet:
-                RH.getInstance().getSubscriberByID(this, "sub_9d5735d3682d");
+                RH.getInstance().getSubscriberByID(this);
                 break;
+            case R.id.btnDelete:
+                RH.getInstance().deleteSubscriberByID(this);
+                break;
+            case R.id.btnUpdate:
+                RH.getInstance().updateSubscriberByID(this, referralParams);
+                break;
+
         }
     }
 }

@@ -42,7 +42,7 @@ class RH(var context_: Context) {
 
 
     fun getSubScriberID(): String? {
-        return prefHelper_.rHSubscriberID;
+        return prefHelper_.rHSubscriberID
     }
 
     /**
@@ -56,12 +56,10 @@ class RH(var context_: Context) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val response = referralNetworkClient_.serverRequestCallBackAsync<Any>(
-                    context_,
-                    "${prefHelper_.rhCampaignID}/subscribers/",
-                    referralParams
+                    context_, "${prefHelper_.rhCampaignID}/subscribers/", referralParams
                 )
                 withContext(Dispatchers.Main) {
-                    handleResponse(response)
+                    handleNewResponse(response)
                 }
             } catch (exception: Exception) {
                 withContext(Dispatchers.Main) {
@@ -72,20 +70,18 @@ class RH(var context_: Context) {
         }
     }
 
-    fun getSubscriberByID(callback: RHReferralCallBackListener?, subscriber_id: String) {
+    fun getSubscriberByID(callback: RHReferralCallBackListener?) {
         registerSubscriberCallback_ = callback
-        val queryParams = HashMap<String, String?>()
 
-        queryParams[ApiConstants.RequestParam.RH_SUBSCRIBER_ID] = subscriber_id
+        Log.e("ID", prefHelper_.rHSubscriberID.toString())
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val response = referralNetworkClient_.serverRequestGetAsync<Any>(
                     context_,
-                    "${RHUtil.readRhCampaignID(context_)}/subscribers/${subscriber_id}",
-                    queryParams
+                    "${RHUtil.readRhCampaignID(context_)}/subscribers/${prefHelper_.rHSubscriberID}"
                 )
                 withContext(Dispatchers.Main) {
-                    handleResponse(response)
+                    handleResponse(response, ApiConstants.OperationType.GET.ordinal)
                 }
             } catch (exception: Exception) {
                 withContext(Dispatchers.Main) {
@@ -96,17 +92,59 @@ class RH(var context_: Context) {
         }
     }
 
-    fun handleResponse(response: ApiResponse) {
-        if (response.status == "ok") {
-            response.data?.let {
-                prefHelper_.rHReferralLink = it.referral_link
-                prefHelper_.rHSubscriberID = it.id
+    /***
+     * This method will only be used when user want Delete a subscriber.
+     * it is only Delete a single subscriber.
+     * @param callback  -- callback call success and failure method
+     */
+    fun deleteSubscriberByID(callback: RHReferralCallBackListener?) {
+        removeSubscriberCallback_ = callback
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = referralNetworkClient_.serverRequestDeleteAsync<Any>(
+                    context_,
+                    "${RHUtil.readRhCampaignID(context_)}/subscribers/${prefHelper_.rHSubscriberID}"
+                )
+                withContext(Dispatchers.Main) {
+                    handleResponse(response, ApiConstants.OperationType.DELETE.ordinal)
+                }
+            } catch (exception: Exception) {
+                withContext(Dispatchers.Main) {
+                    PrefHelper.Debug(exception.toString())
+                    //callback?.onFailureCallback(exception)
+                }
             }
-            registerSubscriberCallback_?.onSuccessCallback(response)
-        } else {
-            prefHelper_.rHReferralLink = PrefHelper.NO_STRING_VALUE
-            registerSubscriberCallback_?.onFailureCallback(response)
         }
+
+    }
+
+    /***
+     * This method will only be used when user want Update a subscriber.
+     * it is only Update a single subscriber.
+     * @param callback  -- callback call success and failure method
+     */
+    fun updateSubscriberByID(
+        callback: RHReferralCallBackListener?, referralParams: ReferralParams
+    ) {
+        removeSubscriberCallback_ = callback
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = referralNetworkClient_.serverRequestPatchAsync<Any>(
+                    context_,
+                    "${RHUtil.readRhCampaignID(context_)}/subscribers/${prefHelper_.rHSubscriberID}",
+                    referralParams
+                )
+                withContext(Dispatchers.Main) {
+                    handleResponse(response, ApiConstants.OperationType.UPDATE.ordinal)
+                }
+            } catch (exception: Exception) {
+                withContext(Dispatchers.Main) {
+                    PrefHelper.Debug(exception.toString())
+                    //callback?.onFailureCallback(exception)
+                }
+            }
+        }
+
     }
 
     /***
@@ -121,8 +159,54 @@ class RH(var context_: Context) {
      * @param callback -- callback call success and failure method
      */
     fun trackReferral(callback: RHReferralCallBackListener?, referralParams: ReferralParams) {
-
+        trackReferralCallback_ = callback
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = referralNetworkClient_.serverRequestCallBackAsync<Any>(
+                    context_,
+                    "${RHUtil.readRhCampaignID(context_)}/subscribers/track_referral_conversion_event",
+                    referralParams
+                )
+                withContext(Dispatchers.Main) {
+                    handleResponse(response, ApiConstants.OperationType.TRACK.ordinal)
+                }
+            } catch (exception: Exception) {
+                withContext(Dispatchers.Main) {
+                    PrefHelper.Debug(exception.toString())
+                    //callback?.onFailureCallback(exception)
+                }
+            }
+        }
     }
+
+    fun handleNewResponse(response: ApiResponse) {
+        if (response.status == "ok") {
+            response.data?.let {
+                prefHelper_.rHReferralLink = it.referral_link
+                prefHelper_.rHSubscriberID = it.id
+            }
+            registerSubscriberCallback_?.onSuccessCallback(response)
+        } else {
+            prefHelper_.rHReferralLink = PrefHelper.NO_STRING_VALUE
+            registerSubscriberCallback_?.onFailureCallback(response)
+        }
+    }
+
+    fun handleResponse(response: ApiResponse, ordinal: Int) {
+        if (response.status == "ok") {
+            if (ordinal == ApiConstants.OperationType.DELETE.ordinal) prefHelper_.clearPrefOnBranchKeyChange()
+
+            response.data?.let {
+                prefHelper_.rHReferralLink = it.referral_link
+                prefHelper_.rHSubscriberID = it.id
+            }
+            registerSubscriberCallback_?.onSuccessCallback(response)
+        } else {
+            prefHelper_.rHReferralLink = PrefHelper.NO_STRING_VALUE
+            registerSubscriberCallback_?.onFailureCallback(response)
+        }
+    }
+
 
     /***
      * This method will only be used when a multistep event is selected in the goal section for
@@ -147,15 +231,6 @@ class RH(var context_: Context) {
 
     }
 
-    /***
-     * This method will only be used when user want Delete a subscriber.
-     * it is only Delete a single subscriber.
-     * @param callback  -- callback call success and failure method
-     */
-    fun removeReferralSubscriber(callback: RHReferralCallBackListener?) {
-        removeSubscriberCallback_ = callback
-
-    }
 
     interface RHReferralCallBackListener {
         fun onSuccessCallback(response: ApiResponse?)

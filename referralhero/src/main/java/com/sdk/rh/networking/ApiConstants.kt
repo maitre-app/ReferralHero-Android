@@ -31,4 +31,12 @@ interface ApiConstants {
             const val RH_SORT_BY = "sort_by"
         }
     }
+
+    enum class OperationType {
+        DELETE,
+        ADD,
+        GET,
+        TRACK,
+        UPDATE
+    }
 }

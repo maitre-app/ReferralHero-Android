@@ -37,27 +37,14 @@ class PrefHelper(context: Context) {
         prefsEditor_ = appSharedPrefs_.edit()
         mContext = context
     }
-
     /**
      * Set the given Referral API Key  to preference. Clears the preference data if the key is a new key.
      *
      * @param key A [String] representing Referral API Key .
-     * @return A [Boolean] which is true if the key set is a new key. On Setting a new key need to clear all preference items.
+     *
      */
-    fun setRHAccessTokenKey(key: String?): Boolean {
-        val currentBranchKey = getString(KEY_RH_ACCESS_TOKEN)
-        if (currentBranchKey != key) {
-            clearPrefOnBranchKeyChange()
-            setString(KEY_RH_ACCESS_TOKEN, key)
-
-            // PrefHelper can be retrieved before RH singleton is initialized
-            if (RH.instance != null) {
-                /* RH.getInstance().linkCache_.clear();
-                RH.getInstance().requestQueue_.clear();*/
-            }
-            return true
-        }
-        return false
+    fun setRHAccessTokenKey(key: String?) {
+        setString(KEY_RH_ACCESS_TOKEN, key)
     }
 
 
@@ -65,22 +52,9 @@ class PrefHelper(context: Context) {
      * Set the given Referral API Key  to preference. Clears the preference data if the key is a new key.
      *
      * @param key A [String] representing Referral API Key .
-     * @return A [Boolean] which is true if the key set is a new key. On Setting a new key need to clear all preference items.
      */
-    fun setRHCampaignID(key: String?): Boolean {
-        val currentBranchKey = getString(KEY_RH_CAMPAIGN_ID)
-        if (currentBranchKey != key) {
-            clearPrefOnBranchKeyChange()
-            setString(KEY_RH_CAMPAIGN_ID, key)
-
-            // PrefHelper can be retrieved before RH singleton is initialized
-            if (RH.instance != null) {
-                /* RH.getInstance().linkCache_.clear();
-                RH.getInstance().requestQueue_.clear();*/
-            }
-            return true
-        }
-        return false
+    fun setRHCampaignID(key: String?) {
+        setString(KEY_RH_CAMPAIGN_ID, key)
     }
 
     val rhCampaignID: String?
@@ -329,7 +303,7 @@ class PrefHelper(context: Context) {
      * Clears all the RH referral shared preferences related to the current key.
      * Should be called before setting a new Referral hero-AccessToken.
      */
-    private fun clearPrefOnBranchKeyChange() {
+    fun clearPrefOnBranchKeyChange() {
         prefsEditor_!!.clear()
         prefsEditor_!!.apply()
     }

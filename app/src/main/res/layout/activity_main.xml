@@ -16,9 +16,23 @@
     <Button
         android:id="@+id/btnGet"
         android:layout_width="match_parent"
+        android:layout_marginTop="10dp"
+        android:layout_height="wrap_content"
+        android:text="Get a Subscriber/Referral" />
+
+    <Button
+        android:id="@+id/btnDelete"
+        android:layout_width="match_parent"
+        android:layout_marginTop="10dp"
+        android:layout_height="wrap_content"
+        android:text="Delete a Subscriber/Referral" />
+
+    <Button
+        android:id="@+id/btnUpdate"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:text="Get a Subscriber/Referral" />
+        android:text="Update a Subscriber/Referral" />
 
     <Button
         android:id="@+id/btnTrack"

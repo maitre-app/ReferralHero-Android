@@ -13,6 +13,7 @@ class ReferralParams {
     var extraField: String? = null
     var name: String? = null
     var uuid: String? = null
+    var subscriber_id: String? = null
     var email: String? = null
     var domain: String? = null
     var phoneNumber: String? = null
