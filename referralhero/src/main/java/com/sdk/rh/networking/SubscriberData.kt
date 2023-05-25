@@ -35,5 +35,7 @@ data class ReferredBy(
     val id: String?,
     val name: String?,
     val email: String?,
-    val phone_number: String?
+    val phone_number: String?,
+    val people_referred: Int?,
+    val points: Int?,
 )

@@ -2,6 +2,7 @@ package com.sdk.rh.networking
 
 import android.content.Context
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.sdk.rh.PrefHelper
 import com.sdk.rh.RHUtil
 import kotlinx.coroutines.Dispatchers
@@ -26,9 +27,9 @@ class ReferralNetworkClient {
     - Used `withContext` and `Dispatchers.IO` for performing the network request asynchronously.
     - Handled the response based on the HTTP status code, returning the parsed response if code is 200, otherwise returning a new `ApiResponse` object with the error details.
      * */
-    suspend fun <T> serverRequestGetAsync(
+    suspend fun serverRequestGetAsync(
         context: Context, endpoint: String
-    ): ApiResponse {
+    ): ApiResponse<SubscriberData> {
 
         val urlBuilder = (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()?.newBuilder()
         val url = urlBuilder?.build()?.toString()
@@ -41,7 +42,10 @@ class ReferralNetworkClient {
         return withContext(Dispatchers.IO) {
             val response = client.newCall(request).execute()
             val responseString = response.body?.string()
-            val parsedResponse: ApiResponse = gson.fromJson(responseString, ApiResponse::class.java)
+            val parsedResponse: ApiResponse<SubscriberData> = gson.fromJson(
+                responseString,
+                object : TypeToken<ApiResponse<SubscriberData>>() {}.type
+            )
             if (response.code == 200) {
                 parsedResponse
             } else {
@@ -59,9 +63,9 @@ class ReferralNetworkClient {
     - Handled the response based on the HTTP status code, returning the parsed response if code is 200, otherwise returning a new `ApiResponse` object with the error details.
      * ***/
 
-    suspend fun <T> serverRequestCallBackAsync(
+    suspend fun serverRequestCallBackAsync(
         context: Context, endpoint: String, referralParams: ReferralParams
-    ): ApiResponse {
+    ): ApiResponse<SubscriberData> {
 
         val jsonMediaType = "application/json".toMediaTypeOrNull()
         val requestBody: RequestBody = Gson().toJson(referralParams).toRequestBody(jsonMediaType)
@@ -76,7 +80,10 @@ class ReferralNetworkClient {
         return withContext(Dispatchers.IO) {
             val response = client.newCall(request).execute()
             val responseString = response.body?.string()
-            val parsedResponse: ApiResponse = gson.fromJson(responseString, ApiResponse::class.java)
+            val parsedResponse: ApiResponse<SubscriberData> = gson.fromJson(
+                responseString,
+                object : TypeToken<ApiResponse<SubscriberData>>() {}.type
+            )
             if (response.code == 200) {
                 parsedResponse
             } else {
@@ -95,9 +102,9 @@ class ReferralNetworkClient {
     - Used `withContext` and `Dispatchers.IO` for performing the network request asynchronously.
     - Handled the response based on the HTTP status code, returning the parsed response if code is 200, otherwise returning a new `ApiResponse` object with the error details.
      * ***/
-    suspend fun <T> serverRequestDeleteAsync(
+    suspend fun serverRequestDeleteAsync(
         context: Context, endpoint: String
-    ): ApiResponse {
+    ): ApiResponse<SubscriberData> {
 
         val urlBuilder = (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()?.newBuilder()
         val url = urlBuilder?.build()?.toString()
@@ -111,7 +118,10 @@ class ReferralNetworkClient {
         return withContext(Dispatchers.IO) {
             val response = client.newCall(request).execute()
             val responseString = response.body?.string()
-            val parsedResponse: ApiResponse = gson.fromJson(responseString, ApiResponse::class.java)
+            val parsedResponse: ApiResponse<SubscriberData> = gson.fromJson(
+                responseString,
+                object : TypeToken<ApiResponse<SubscriberData>>() {}.type
+            )
             if (response.code == 200) {
                 parsedResponse
             } else {
@@ -129,9 +139,9 @@ class ReferralNetworkClient {
     - Used `withContext` and `Dispatchers.IO` for performing the network request asynchronously.
     - Handled the response based on the HTTP status code, returning the parsed response if the code is 200, otherwise returning a new `ApiResponse` object with the error details.
      * ***/
-    suspend fun <T> serverRequestPatchAsync(
+    suspend fun serverRequestPatchAsync(
         context: Context, endpoint: String, referralParams: ReferralParams
-    ): ApiResponse {
+    ): ApiResponse<SubscriberData> {
 
         val jsonMediaType = "application/json".toMediaTypeOrNull()
         val requestBody: RequestBody = Gson().toJson(referralParams).toRequestBody(jsonMediaType)
@@ -146,7 +156,10 @@ class ReferralNetworkClient {
         return withContext(Dispatchers.IO) {
             val response = client.newCall(request).execute()
             val responseString = response.body?.string()
-            val parsedResponse: ApiResponse = gson.fromJson(responseString, ApiResponse::class.java)
+            val parsedResponse: ApiResponse<SubscriberData> = gson.fromJson(
+                responseString,
+                object : TypeToken<ApiResponse<SubscriberData>>() {}.type
+            )
             if (response.code == 200) {
                 parsedResponse
             } else {
@@ -156,5 +169,73 @@ class ReferralNetworkClient {
         }
     }
 
+    /**
+    - Created a new function `serverRequestGetMyReferralAsync` to handle GET requests.
+    - Removed the creation of the request body since it's not needed for GET requests.
+    - Utilized the `get()` method to specify the request type as GET.
+    - Retained the logic for building the URL and adding headers.
+    - Used `withContext` and `Dispatchers.IO` for performing the network request asynchronously.
+    - Handled the response based on the HTTP status code, returning the parsed response if code is 200, otherwise returning a new `ApiResponse` object with the error details.
+     * */
+    suspend fun serverRequestGetMyReferralAsync(
+        context: Context, endpoint: String
+    ): ApiResponse<ListSubscriberData> {
 
+        val urlBuilder = (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()?.newBuilder()
+        val url = urlBuilder?.build()?.toString()
+        val requestBuilder =
+            Request.Builder().url(url!!).addHeader("Authorization", RHUtil.readRhKey(context))
+                .addHeader("Accept", "application/vnd.referralhero.v1")
+                .addHeader("Content-Type", "application/json").get()
+
+        val request = requestBuilder.build()
+        return withContext(Dispatchers.IO) {
+            val response = client.newCall(request).execute()
+            val responseString = response.body?.string()
+            val parsedResponse: ApiResponse<ListSubscriberData> = gson.fromJson(
+                responseString,
+                object : TypeToken<ApiResponse<ListSubscriberData>>() {}.type
+            )
+            if (response.code == 200) {
+                parsedResponse
+            } else {
+                ApiResponse("error", parsedResponse.message, parsedResponse.code, null, null, 0)
+            }
+        }
+    }
+
+    /**
+    - Created a new function `serverRequestGetLeaderboardAsync` to handle GET requests.
+    - Removed the creation of the request body since it's not needed for GET requests.
+    - Utilized the `get()` method to specify the request type as GET.
+    - Retained the logic for building the URL and adding headers.
+    - Used `withContext` and `Dispatchers.IO` for performing the network request asynchronously.
+    - Handled the response based on the HTTP status code, returning the parsed response if code is 200, otherwise returning a new `ApiResponse` object with the error details.
+     * */
+    suspend fun <T> serverRequestGetLeaderboardAsync(
+        context: Context, endpoint: String
+    ): ApiResponse<RankingDataContent> {
+
+        val urlBuilder = (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()?.newBuilder()
+        val url = urlBuilder?.build()?.toString()
+        val requestBuilder =
+            Request.Builder().url(url!!).addHeader("Authorization", RHUtil.readRhKey(context))
+                .addHeader("Accept", "application/vnd.referralhero.v1")
+                .addHeader("Content-Type", "application/json").get()
+
+        val request = requestBuilder.build()
+        return withContext(Dispatchers.IO) {
+            val response = client.newCall(request).execute()
+            val responseString = response.body?.string()
+            val parsedResponse: ApiResponse<RankingDataContent> = gson.fromJson(
+                responseString,
+                object : TypeToken<ApiResponse<RankingDataContent>>() {}.type
+            )
+            if (response.code == 200) {
+                parsedResponse
+            } else {
+                ApiResponse("error", parsedResponse.message, parsedResponse.code, null, null, 0)
+            }
+        }
+    }
 }

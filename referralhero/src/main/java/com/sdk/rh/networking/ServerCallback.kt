@@ -1,7 +1,6 @@
 package com.sdk.rh.networking
 
 import okhttp3.Call
-import java.io.IOException
 
 interface ServerCallback {
     /**
@@ -21,6 +20,6 @@ interface ServerCallback {
      * necessarily indicate application-layer success: `response` may still indicate an unhappy HTTP
      * response code like 404 or 500.
      */
-    @Throws(exceptionClasses = [IOException::class])
-    fun onResponse(call: Call?, response: ApiResponse)
+    /* @Throws(exceptionClasses = [IOException::class])
+     fun onResponse(call: Call?, response: ApiResponse<T>)*/
 }

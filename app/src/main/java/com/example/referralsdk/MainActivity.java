@@ -1,18 +1,22 @@
 package com.example.referralsdk;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.sdk.rh.RH;
 import com.sdk.rh.networking.ApiResponse;
+import com.sdk.rh.networking.ListSubscriberData;
+import com.sdk.rh.networking.RankingDataContent;
 import com.sdk.rh.networking.ReferralParams;
 
 
-public class MainActivity extends AppCompatActivity implements RH.RHReferralCallBackListener, View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements RH.RHReferralCallBackListener, View.OnClickListener, RH.RHMyReferralCallBackListener, RH.RHLeaderBoardReferralCallBackListener {
 
 
     Button btnAdd, btnGet, btnDelete, btnUpdate, btnTrack, btnOrgTrack, btnPending, btnConfirm, btnGetCampaign, btnGetReferral, btnCapture;
@@ -71,7 +75,7 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
                 referralParams.setReferrer("");
                 referralParams.setUuid("MF4345c63888");
                 RH.getInstance().formSubmit(this, referralParams);
-                RH.getInstance().getPrefHelper_().getRHReferralLink();
+                RH.getInstance().getPrefHelper().getRHReferralLink();
                 break;
 
             case R.id.btnGet:
@@ -91,9 +95,36 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
                 break;
             case R.id.btnCapture:
                 referralParams.setSocial("Whatsapp");
-                RH.getInstance().clickCapture(this, referralParams);
+                RH.getInstance().captureShare(this, referralParams);
+                break;
+
+            case R.id.btnGetReferral:
+                RH.getInstance().getMyReferrals(this);
+                break;
+            case R.id.btnGetCampaign:
+                RH.getInstance().getLeaderboard(this);
                 break;
 
         }
+    }
+
+    @Override
+    public void onMyReferralSuccessCallback(@Nullable ApiResponse<ListSubscriberData> response) {
+        Log.e("onMyReferralSuccess", response.getData().getResponse());
+    }
+
+    @Override
+    public void onMyReferralFailureCallback(@Nullable ApiResponse<ListSubscriberData> response) {
+        Log.e("onMyReferralSuccess", response.getMessage());
+    }
+
+    @Override
+    public void onLeaderBoardReferralSuccessCallback(@Nullable ApiResponse<RankingDataContent> response) {
+        Log.e("onLeaderBoardSuccess", String.valueOf(response.getData().getCount()));
+    }
+
+    @Override
+    public void onLeaderBoardReferralFailureCallback(@Nullable ApiResponse<RankingDataContent> response) {
+        Log.e("onLeaderBoardSuccess", response.getMessage());
     }
 }

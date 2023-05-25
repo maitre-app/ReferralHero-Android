@@ -1,12 +1,8 @@
 package com.sdk.rh
 
 import android.content.Context
-import android.net.Uri
 import android.text.TextUtils
-import com.sdk.rh.networking.ApiConstants
-import com.sdk.rh.networking.ApiResponse
-import com.sdk.rh.networking.ReferralNetworkClient
-import com.sdk.rh.networking.ReferralParams
+import com.sdk.rh.networking.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -16,18 +12,20 @@ import kotlinx.coroutines.withContext
  * Created by Jaspalsinh Gohil(Jayden) on 02-05-2023.
  */
 class RH(var context_: Context) {
-    val prefHelper_: PrefHelper
+    val prefHelper: PrefHelper
     val deviceInfo: DeviceInfo
-    var referralNetworkClient_: ReferralNetworkClient
-    private var registerSubscriberCallback_: RHReferralCallBackListener? = null
-    private var removeSubscriberCallback_: RHReferralCallBackListener? = null
-    private var trackReferralCallback_: RHReferralCallBackListener? = null
+    private var referralNetworkClient: ReferralNetworkClient
+    private var registerSubscriberCallback: RHReferralCallBackListener? = null
+    private var removeSubscriberCallback: RHReferralCallBackListener? = null
+    private var trackReferralCallback: RHReferralCallBackListener? = null
+    private var myReferralCallback: RHMyReferralCallBackListener? = null
+    private var leaderBoardReferralCallback: RHLeaderBoardReferralCallBackListener? = null
 
 
     init {
         deviceInfo = DeviceInfo(context_)
-        prefHelper_ = PrefHelper(context_)
-        referralNetworkClient_ = ReferralNetworkClient()
+        prefHelper = PrefHelper(context_)
+        referralNetworkClient = ReferralNetworkClient()
     }
 
     /**
@@ -37,14 +35,14 @@ class RH(var context_: Context) {
      * @param callback -- callback call success and failure method
      */
     fun formSubmit(callback: RHReferralCallBackListener?, referralParams: ReferralParams) {
-        registerSubscriberCallback_ = callback
+        registerSubscriberCallback = callback
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = referralNetworkClient_.serverRequestCallBackAsync<Any>(
-                    context_, "${prefHelper_.rhCampaignID}/subscribers/", referralParams
+                val response = referralNetworkClient.serverRequestCallBackAsync(
+                    context_, "${prefHelper.rhCampaignID}/subscribers/", referralParams
                 )
                 withContext(Dispatchers.Main) {
-                    handleNewResponse(response)
+                    handleApiResponse(response, ApiConstants.OperationType.ADD.ordinal)
                 }
             } catch (exception: Exception) {
                 withContext(Dispatchers.Main) {
@@ -55,15 +53,15 @@ class RH(var context_: Context) {
     }
 
     fun getSubscriberByID(callback: RHReferralCallBackListener?) {
-        registerSubscriberCallback_ = callback
+        registerSubscriberCallback = callback
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = referralNetworkClient_.serverRequestGetAsync<Any>(
+                val response = referralNetworkClient.serverRequestGetAsync(
                     context_,
-                    "${RHUtil.readRhCampaignID(context_)}/subscribers/${prefHelper_.rHSubscriberID}"
+                    "${RHUtil.readRhCampaignID(context_)}/subscribers/${prefHelper.rHSubscriberID}"
                 )
                 withContext(Dispatchers.Main) {
-                    handleResponse(response, ApiConstants.OperationType.GET.ordinal)
+                    handleApiResponse(response, ApiConstants.OperationType.GET.ordinal)
                 }
             } catch (exception: Exception) {
                 withContext(Dispatchers.Main) {
@@ -79,15 +77,15 @@ class RH(var context_: Context) {
      * @param callback  -- callback call success and failure method
      */
     fun deleteSubscriberByID(callback: RHReferralCallBackListener?) {
-        removeSubscriberCallback_ = callback
+        removeSubscriberCallback = callback
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = referralNetworkClient_.serverRequestDeleteAsync<Any>(
+                val response = referralNetworkClient.serverRequestDeleteAsync(
                     context_,
-                    "${RHUtil.readRhCampaignID(context_)}/subscribers/${prefHelper_.rHSubscriberID}"
+                    "${RHUtil.readRhCampaignID(context_)}/subscribers/${prefHelper.rHSubscriberID}"
                 )
                 withContext(Dispatchers.Main) {
-                    handleResponse(response, ApiConstants.OperationType.DELETE.ordinal)
+                    handleApiResponse(response, ApiConstants.OperationType.DELETE.ordinal)
                 }
             } catch (exception: Exception) {
                 withContext(Dispatchers.Main) {
@@ -106,16 +104,16 @@ class RH(var context_: Context) {
     fun updateSubscriberByID(
         callback: RHReferralCallBackListener?, referralParams: ReferralParams
     ) {
-        removeSubscriberCallback_ = callback
+        removeSubscriberCallback = callback
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = referralNetworkClient_.serverRequestPatchAsync<Any>(
+                val response = referralNetworkClient.serverRequestPatchAsync(
                     context_,
-                    "${RHUtil.readRhCampaignID(context_)}/subscribers/${prefHelper_.rHSubscriberID}",
+                    "${RHUtil.readRhCampaignID(context_)}/subscribers/${prefHelper.rHSubscriberID}",
                     referralParams
                 )
                 withContext(Dispatchers.Main) {
-                    handleResponse(response, ApiConstants.OperationType.UPDATE.ordinal)
+                    handleApiResponse(response, ApiConstants.OperationType.UPDATE.ordinal)
                 }
             } catch (exception: Exception) {
                 withContext(Dispatchers.Main) {
@@ -139,16 +137,16 @@ class RH(var context_: Context) {
      * @param callback -- callback call success and failure method
      */
     fun trackReferral(callback: RHReferralCallBackListener?, referralParams: ReferralParams) {
-        trackReferralCallback_ = callback
+        trackReferralCallback = callback
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = referralNetworkClient_.serverRequestCallBackAsync<Any>(
+                val response = referralNetworkClient.serverRequestCallBackAsync(
                     context_,
                     "${RHUtil.readRhCampaignID(context_)}/subscribers/track_referral_conversion_event",
                     referralParams
                 )
                 withContext(Dispatchers.Main) {
-                    handleResponse(response, ApiConstants.OperationType.TRACK.ordinal)
+                    handleApiResponse(response, ApiConstants.OperationType.TRACK.ordinal)
                 }
             } catch (exception: Exception) {
                 withContext(Dispatchers.Main) {
@@ -162,17 +160,17 @@ class RH(var context_: Context) {
      * It is used to send the Share event to the RH. It means If user call this method
      * with any params like facebook, messenger, etc. We capture this as the share in our system.
      * **/
-    fun clickCapture(callback: RHReferralCallBackListener?, referralParams: ReferralParams) {
-        trackReferralCallback_ = callback
+    fun captureShare(callback: RHReferralCallBackListener?, referralParams: ReferralParams) {
+        trackReferralCallback = callback
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val response = referralNetworkClient_.serverRequestCallBackAsync<Any>(
+                val response = referralNetworkClient.serverRequestCallBackAsync(
                     context_,
-                    "${RHUtil.readRhCampaignID(context_)}/subscribers/${prefHelper_.rHSubscriberID}/click_capture",
+                    "${RHUtil.readRhCampaignID(context_)}/subscribers/${prefHelper.rHSubscriberID}/click_capture",
                     referralParams
                 )
                 withContext(Dispatchers.Main) {
-                    handleResponse(response, ApiConstants.OperationType.CAPTURE.ordinal)
+                    handleApiResponse(response, ApiConstants.OperationType.CAPTURE.ordinal)
                 }
             } catch (exception: Exception) {
                 withContext(Dispatchers.Main) {
@@ -182,48 +180,131 @@ class RH(var context_: Context) {
         }
     }
 
-    fun handleNewResponse(response: ApiResponse) {
+
+    /**
+    - Updated the function signature to include the response type @param ApiResponse<SubscriberData> and an @param ordinal parameter.
+    - Added conditional checks based on the response status and `ordinal` value.
+    - If the response status is "ok" and the `ordinal` is `ApiConstants.OperationType.DELETE`, clear preferences related to branch key change.
+    - If the response status is "ok" and the `ordinal` is `ApiConstants.OperationType.ADD`, update preferences with the subscriber data from the response.
+    - Invoked the appropriate callbacks from the `registerSubscriberCallback_` based on the response status and `ordinal`.
+     * **/
+    private fun handleApiResponse(response: ApiResponse<SubscriberData>, ordinal: Int) {
         if (response.status == "ok") {
-            response.data?.let {
-                prefHelper_.rHReferralLink = it.referral_link
-                prefHelper_.rHSubscriberID = it.id
+            if (ordinal == ApiConstants.OperationType.DELETE.ordinal) prefHelper.clearPrefOnBranchKeyChange()
+
+            if (ordinal == ApiConstants.OperationType.ADD.ordinal) {
+                response.data?.let {
+                    prefHelper.rHReferralLink = it.referral_link
+                    prefHelper.rHSubscriberID = it.id
+                }
             }
-            registerSubscriberCallback_?.onSuccessCallback(response)
+            registerSubscriberCallback?.onSuccessCallback(response)
         } else {
-            prefHelper_.rHReferralLink = PrefHelper.NO_STRING_VALUE
-            registerSubscriberCallback_?.onFailureCallback(response)
+            prefHelper.rHReferralLink = PrefHelper.NO_STRING_VALUE
+            registerSubscriberCallback?.onFailureCallback(response)
         }
     }
 
-    fun handleResponse(response: ApiResponse, ordinal: Int) {
-        if (response.status == "ok") {
-            if (ordinal == ApiConstants.OperationType.DELETE.ordinal) prefHelper_.clearPrefOnBranchKeyChange()
-
-            response.data?.let {
-                prefHelper_.rHReferralLink = it.referral_link
-                prefHelper_.rHSubscriberID = it.id
+    /*
+    - Created a new function `getMyReferrals` to fetch referral data specific to the current subscriber.
+    - Updated the function signature to include the `callback` parameter of type `RHMyReferralCallBackListener`.
+    - Utilized coroutine scope and `Dispatchers.IO` for performing the network request asynchronously.
+    - Invoked `serverRequestGetMyReferralAsync` from the `referralNetworkClient_` to retrieve the referral data.
+    - Utilized `withContext` and `Dispatchers.Main` to handle the response on the main thread.
+    - Implemented `handleMyReferralApiResponse` to process the API response and invoke the appropriate callbacks.
+    - Added error handling using `try-catch` block to catch any exceptions during the network request.
+   * */
+    fun getMyReferrals(callback: RHMyReferralCallBackListener?) {
+        myReferralCallback = callback
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = referralNetworkClient.serverRequestGetMyReferralAsync(
+                    context_,
+                    "${RHUtil.readRhCampaignID(context_)}/subscribers/${prefHelper.rHSubscriberID}/referrals_data"
+                )
+                withContext(Dispatchers.Main) {
+                    handleMyReferralApiResponse(response)
+                }
+            } catch (exception: Exception) {
+                withContext(Dispatchers.Main) {
+                    PrefHelper.Debug(exception.toString())
+                }
             }
-            registerSubscriberCallback_?.onSuccessCallback(response)
-        } else {
-            prefHelper_.rHReferralLink = PrefHelper.NO_STRING_VALUE
-            registerSubscriberCallback_?.onFailureCallback(response)
         }
     }
 
+    /*
+    - Created a new function `getLeaderboard` to fetch leaderboard data.
+    - Updated the function signature to include the `callback` parameter of type `RHLeaderBoardReferralCallBackListener`.
+    - Utilized coroutine scope and `Dispatchers.IO` for performing the network request asynchronously.
+    - Invoked `serverRequestGetLeaderboardAsync` from the `referralNetworkClient_` to retrieve the leaderboard data.
+    - Utilized `withContext` and `Dispatchers.Main` to handle the response on the main thread.
+    - Implemented `handleLeaderBoardReferralApiResponse` to process the API response and invoke the appropriate callbacks.
+    - Added error handling using `try-catch` block to catch any exceptions during the network request.
+    * */
+    fun getLeaderboard(callback: RHLeaderBoardReferralCallBackListener?) {
+        leaderBoardReferralCallback = callback
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = referralNetworkClient.serverRequestGetLeaderboardAsync<Any>(
+                    context_,
+                    "${RHUtil.readRhCampaignID(context_)}/leaderboard"
+                )
+                withContext(Dispatchers.Main) {
+                    handleLeaderBoardReferralApiResponse(response)
+                }
+            } catch (exception: Exception) {
+                withContext(Dispatchers.Main) {
+                    PrefHelper.Debug(exception.toString())
+                }
+            }
+        }
+    }
+
+
+    /**
+    - Updated the function signature to include the response type `ApiResponse<ListSubscriberData>`.
+    - Added conditional checks based on the response status.
+     * **/
+
+    private fun handleMyReferralApiResponse(response: ApiResponse<ListSubscriberData>) {
+        if (response.status == "ok") {
+            myReferralCallback?.onMyReferralSuccessCallback(response)
+        } else {
+            myReferralCallback?.onMyReferralFailureCallback(response)
+        }
+    }
+
+    /**
+    - Updated the function signature to include the response type `ApiResponse<RankingDataContent>`.
+    - Added conditional checks based on the response status.
+     * **/
+    private fun handleLeaderBoardReferralApiResponse(response: ApiResponse<RankingDataContent>) {
+        if (response.status == "ok") {
+            leaderBoardReferralCallback?.onLeaderBoardReferralSuccessCallback(response)
+        } else {
+            leaderBoardReferralCallback?.onLeaderBoardReferralFailureCallback(response)
+        }
+    }
 
     interface RHReferralCallBackListener {
-        fun onSuccessCallback(response: ApiResponse?)
-        fun onFailureCallback(response: ApiResponse?)
+        fun onSuccessCallback(response: ApiResponse<SubscriberData>?)
+        fun onFailureCallback(response: ApiResponse<SubscriberData>?)
+    }
+
+    interface RHMyReferralCallBackListener {
+        fun onMyReferralSuccessCallback(response: ApiResponse<ListSubscriberData>?)
+        fun onMyReferralFailureCallback(response: ApiResponse<ListSubscriberData>?)
+    }
+
+    interface RHLeaderBoardReferralCallBackListener {
+        fun onLeaderBoardReferralSuccessCallback(response: ApiResponse<RankingDataContent>?)
+        fun onLeaderBoardReferralFailureCallback(response: ApiResponse<RankingDataContent>?)
     }
 
     companion object {
-        private val SHORT_LINK: Uri? = null
 
-        /**
-         *
-         * A [RH] object that is instantiated on init and holds the singleton instance of
-         * the class during application runtime.
-         */
+
         private var RHReferral_: RH? = null
 
         /**
@@ -253,15 +334,15 @@ class RH(var context_: Context) {
             RHReferral_ = RH(context.applicationContext)
             if (TextUtils.isEmpty(RHaccessToken)) {
                 PrefHelper.Debug("Warning: Please enter your access_token in your project's Manifest file!")
-                RHReferral_!!.prefHelper_.setRHAccessTokenKey(PrefHelper.NO_STRING_VALUE)
+                RHReferral_!!.prefHelper.setRHAccessTokenKey(PrefHelper.NO_STRING_VALUE)
             } else {
-                RHReferral_!!.prefHelper_.setRHAccessTokenKey(RHaccessToken)
+                RHReferral_!!.prefHelper.setRHAccessTokenKey(RHaccessToken)
             }
             if (TextUtils.isEmpty(RHuuid)) {
                 PrefHelper.Debug("Warning: Please enter your Campaign  uuid in your project's Manifest file!")
-                RHReferral_!!.prefHelper_.setRHCampaignID(PrefHelper.NO_STRING_VALUE)
+                RHReferral_!!.prefHelper.setRHCampaignID(PrefHelper.NO_STRING_VALUE)
             } else {
-                RHReferral_!!.prefHelper_.setRHCampaignID(RHuuid)
+                RHReferral_!!.prefHelper.setRHCampaignID(RHuuid)
             }
             return RHReferral_
         }
@@ -281,6 +362,7 @@ class RH(var context_: Context) {
         @JvmStatic
         @Synchronized
         fun getAutoInstance(context: Context): RH? {
+            //this.RHReferral_?.context_ = context
             PrefHelper.Debug("Warning, attempted to getAutoInstance RH SDK singleton!")
             if (RHReferral_ == null) {
                 RHReferral_ =

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -38,11 +37,11 @@
 
         <meta-data
             android:name="com.rh.sdk.RhKey"
-            android:value="d7a827ce7d2b6fbcdbfb35d769272dabfd97f753" />
+            android:value="00f9e163fd6d54b18631fd255a91ce06b959bd5c" />
 
         <meta-data
             android:name="com.rh.sdk.uuid"
-            android:value="MF7f649ed4da" />
+            android:value="MF4345c63888" />
     </application>
 
 </manifest>
