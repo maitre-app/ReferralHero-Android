@@ -52,6 +52,11 @@ class RH(var context_: Context) {
         }
     }
 
+    /***
+     * This method will only be used when user want get a subscriber detail.
+     * it is only get a single subscriber detail.
+     * @param callback  -- callback call success and failure method
+     */
     fun getSubscriberByID(callback: RHReferralCallBackListener?) {
         registerSubscriberCallback = callback
         CoroutineScope(Dispatchers.IO).launch {
@@ -180,6 +185,83 @@ class RH(var context_: Context) {
         }
     }
 
+
+    /**
+     * To add a pending referral, simply call ReferralHero's
+     * RH.pendingReferral(callback,param) function and send the user information such as email address and name.
+     * */
+    fun pendingReferral(callback: RHReferralCallBackListener?, referralParams: ReferralParams) {
+        trackReferralCallback = callback
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = referralNetworkClient.serverRequestCallBackAsync(
+                    context_,
+                    "${RHUtil.readRhCampaignID(context_)}/subscribers/pending_referral",
+                    referralParams
+                )
+                withContext(Dispatchers.Main) {
+                    handleApiResponse(response, ApiConstants.OperationType.TRACK.ordinal)
+                }
+            } catch (exception: Exception) {
+                withContext(Dispatchers.Main) {
+                    PrefHelper.Debug(exception.toString())
+                }
+            }
+        }
+    }
+
+
+    /**
+     *  If you would like to track referrals or add organic subscribers on the conversion
+     *  page to your referral campaign, you can use this function
+     * */
+    fun organicTrackReferral(
+        callback: RHReferralCallBackListener?,
+        referralParams: ReferralParams
+    ) {
+        trackReferralCallback = callback
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = referralNetworkClient.serverRequestCallBackAsync(
+                    context_,
+                    "${RHUtil.readRhCampaignID(context_)}/subscribers/organic_track_referral",
+                    referralParams
+                )
+                withContext(Dispatchers.Main) {
+                    handleApiResponse(response, ApiConstants.OperationType.TRACK.ordinal)
+                }
+            } catch (exception: Exception) {
+                withContext(Dispatchers.Main) {
+                    PrefHelper.Debug(exception.toString())
+                }
+            }
+        }
+    }
+
+    /**
+     * Confirm a referral. Useful when your campaign has enabled the "Manual confirmation"
+     * option and you want to confirm referrals when a specific event occur (e.g: upgrade to a paid plan,
+     * end of trial, etc)
+     * */
+    fun confirmReferral(callback: RHReferralCallBackListener?, referralParams: ReferralParams) {
+        trackReferralCallback = callback
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = referralNetworkClient.serverRequestCallBackAsync(
+                    context_,
+                    "${RHUtil.readRhCampaignID(context_)}/subscribers/${prefHelper.rHSubscriberID}/confirm",
+                    referralParams
+                )
+                withContext(Dispatchers.Main) {
+                    handleApiResponse(response, ApiConstants.OperationType.TRACK.ordinal)
+                }
+            } catch (exception: Exception) {
+                withContext(Dispatchers.Main) {
+                    PrefHelper.Debug(exception.toString())
+                }
+            }
+        }
+    }
 
     /**
     - Updated the function signature to include the response type @param ApiResponse<SubscriberData> and an @param ordinal parameter.

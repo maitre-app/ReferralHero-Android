@@ -9,6 +9,7 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.gson.Gson;
 import com.sdk.rh.RH;
 import com.sdk.rh.networking.ApiResponse;
 import com.sdk.rh.networking.ListSubscriberData;
@@ -19,7 +20,7 @@ import com.sdk.rh.networking.ReferralParams;
 public class MainActivity extends AppCompatActivity implements RH.RHReferralCallBackListener, View.OnClickListener, RH.RHMyReferralCallBackListener, RH.RHLeaderBoardReferralCallBackListener {
 
 
-    Button btnAdd, btnGet, btnDelete, btnUpdate, btnTrack, btnOrgTrack, btnPending, btnConfirm, btnGetCampaign, btnGetReferral, btnCapture;
+    Button btnAdd, btnGet, btnVisitor, btnDelete, btnUpdate, btnTrack, btnOrgTrack, btnPending, btnConfirm, btnGetCampaign, btnGetReferral, btnCapture;
     TextView txtReponse;
 
     @Override
@@ -30,6 +31,7 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
         btnAdd = findViewById(R.id.btnAdd);
         btnGet = findViewById(R.id.btnGet);
         btnDelete = findViewById(R.id.btnDelete);
+        btnVisitor = findViewById(R.id.btnVisitor);
         btnUpdate = findViewById(R.id.btnUpdate);
         btnTrack = findViewById(R.id.btnTrack);
         btnOrgTrack = findViewById(R.id.btnOrgTrack);
@@ -51,17 +53,20 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
         btnCapture.setOnClickListener(this);
         btnDelete.setOnClickListener(this);
         btnUpdate.setOnClickListener(this);
+        btnVisitor.setOnClickListener(this);
 
     }
 
     @Override
     public void onSuccessCallback(ApiResponse response) {
-        txtReponse.setText("Response : " + response.getStatus());
+        txtReponse.setText("Response : " + new Gson().toJson(response));
+        Log.e("onSuccessCallback", new Gson().toJson(response));
     }
 
     @Override
     public void onFailureCallback(ApiResponse response) {
-        txtReponse.setText("Response : " + response.getMessage());
+        txtReponse.setText("Response : " + new Gson().toJson(response));
+        Log.e("onFailureCallback", new Gson().toJson(response));
     }
 
     @Override
@@ -69,9 +74,9 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
         ReferralParams referralParams = new ReferralParams();
         switch (v.getId()) {
             case R.id.btnAdd:
-                referralParams.setEmail("Jayden@gmail.com");
+                referralParams.setEmail("Jayden2413@gmail.com");
                 referralParams.setDomain("https://wongazoma.aistechnolabs.info/action");
-                referralParams.setName("AndiDev");
+                referralParams.setName("AndiDe4v");
                 referralParams.setReferrer("");
                 referralParams.setUuid("MF4345c63888");
                 RH.getInstance().formSubmit(this, referralParams);
@@ -104,27 +109,45 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
             case R.id.btnGetCampaign:
                 RH.getInstance().getLeaderboard(this);
                 break;
+            case R.id.btnPending:
+                referralParams.setEmail("Jayden@gmail.com");
+                referralParams.setName("AndiDev");
+                RH.getInstance().pendingReferral(this, referralParams);
+                break;
+            case R.id.btnVisitor:
+                referralParams.setEmail("Jayden@gmail.com");
+                referralParams.setName("AndiDev");
+                RH.getInstance().visitorReferral(this, referralParams);
+                break;
+            case R.id.btnOrgTrack:
+                referralParams.setEmail("Jayden@gmail.com");
+                referralParams.setName("AndiDev");
+                RH.getInstance().organicTrackReferral(this, referralParams);
+                break;
+            case R.id.btnConfirm:
+                RH.getInstance().confirmReferral(this, referralParams);
+                break;
 
         }
     }
 
     @Override
     public void onMyReferralSuccessCallback(@Nullable ApiResponse<ListSubscriberData> response) {
-        Log.e("onMyReferralSuccess", response.getData().getResponse());
+        Log.e("onMyReferralSuccess", new Gson().toJson(response));
     }
 
     @Override
     public void onMyReferralFailureCallback(@Nullable ApiResponse<ListSubscriberData> response) {
-        Log.e("onMyReferralSuccess", response.getMessage());
+        Log.e("onMyReferralSuccess", new Gson().toJson(response));
     }
 
     @Override
     public void onLeaderBoardReferralSuccessCallback(@Nullable ApiResponse<RankingDataContent> response) {
-        Log.e("onLeaderBoardSuccess", String.valueOf(response.getData().getCount()));
+        Log.e("onLeaderBoardSuccess", new Gson().toJson(response));
     }
 
     @Override
     public void onLeaderBoardReferralFailureCallback(@Nullable ApiResponse<RankingDataContent> response) {
-        Log.e("onLeaderBoardSuccess", response.getMessage());
+        Log.e("onLeaderBoardSuccess", new Gson().toJson(response));
     }
 }
