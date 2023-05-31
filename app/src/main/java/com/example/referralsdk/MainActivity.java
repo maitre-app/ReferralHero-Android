@@ -114,14 +114,14 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
                 break;
 
             case R.id.btnGet:
-                rh.getSubscriberByID(this);
+                rh.getSubscriber(this);
                 break;
             case R.id.btnDelete:
-                rh.deleteSubscriberByID(this);
+                rh.deleteSubscriber(this);
                 break;
             case R.id.btnUpdate:
                 referralParams.setName("AndiDevOps");
-                rh.updateSubscriberByID(this, referralParams);
+                rh.updateSubscriber(this, referralParams);
                 break;
             case R.id.btnTrack:
                 referralParams.setEmail("Jayden@gmail.com");
@@ -137,7 +137,17 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
                 rh.getMyReferrals(this);
                 break;
             case R.id.btnGetCampaign:
-                rh.getLeaderboard(this);
+                rh.getLeaderboard(new RH.RHLeaderBoardReferralCallBackListener() {
+                    @Override
+                    public void onLeaderBoardReferralSuccessCallback(@Nullable ApiResponse<RankingDataContent> response) {
+
+                    }
+
+                    @Override
+                    public void onLeaderBoardReferralFailureCallback(@Nullable ApiResponse<RankingDataContent> response) {
+
+                    }
+                });
                 break;
             case R.id.btnPending:
                 referralParams.setEmail("Jayden@gmail.com");
@@ -150,7 +160,7 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
                 rh.organicTrackReferral(this, referralParams);
                 break;
             case R.id.btnConfirm:
-                rh.confirmReferral(this, referralParams);
+                rh.confirmReferral(this);
                 break;
             case R.id.btnVisitor:
 

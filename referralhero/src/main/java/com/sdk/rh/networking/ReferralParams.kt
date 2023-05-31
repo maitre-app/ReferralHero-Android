@@ -3,7 +3,7 @@ package com.sdk.rh.networking
 class ReferralParams {
     var transactionId: String? = null
     var conversionCategory: String? = null
-    var conversionValue: Double? = null
+    var conversionValue: Int? = null
     var device: String? = null
     var source: String? = null
     var doubleOptIn: Boolean? = null

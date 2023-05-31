@@ -58,7 +58,7 @@ class RH(var context_: Context) {
      * it is only get a single subscriber detail.
      * @param callback  -- callback call success and failure method
      */
-    fun getSubscriberByID(callback: RHReferralCallBackListener?) {
+    fun getSubscriber(callback: RHReferralCallBackListener?) {
         registerSubscriberCallback = callback
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -82,7 +82,7 @@ class RH(var context_: Context) {
      * it is only Delete a single subscriber.
      * @param callback  -- callback call success and failure method
      */
-    fun deleteSubscriberByID(callback: RHReferralCallBackListener?) {
+    fun deleteSubscriber(callback: RHReferralCallBackListener?) {
         removeSubscriberCallback = callback
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -107,7 +107,7 @@ class RH(var context_: Context) {
      * it is only Update a single subscriber.
      * @param callback  -- callback call success and failure method
      */
-    fun updateSubscriberByID(
+    fun updateSubscriber(
         callback: RHReferralCallBackListener?, referralParams: ReferralParams
     ) {
         removeSubscriberCallback = callback
@@ -244,14 +244,14 @@ class RH(var context_: Context) {
      * option and you want to confirm referrals when a specific event occur (e.g: upgrade to a paid plan,
      * end of trial, etc)
      * */
-    fun confirmReferral(callback: RHReferralCallBackListener?, referralParams: ReferralParams) {
+    fun confirmReferral(callback: RHReferralCallBackListener?) {
         trackReferralCallback = callback
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val response = referralNetworkClient.serverRequestCallBackAsync(
                     context_,
                     "${RHUtil.readRhCampaignID(context_)}/subscribers/${prefHelper.rHSubscriberID}/confirm",
-                    referralParams
+                    ReferralParams()
                 )
                 withContext(Dispatchers.Main) {
                     handleApiResponse(response, ApiConstants.OperationType.TRACK.ordinal)
@@ -447,7 +447,7 @@ class RH(var context_: Context) {
         @Synchronized
         fun getAutoInstance(context: Context): RH? {
             //this.RHReferral_?.context_ = context
-            PrefHelper.Debug("Warning, attempted to getAutoInstance RH SDK singleton!")
+            Logger().debug("Warning, attempted to getAutoInstance RH SDK singleton!")
             if (RHReferral_ == null) {
                 RHReferral_ =
                     initRHSDK(context, RHUtil.readRhKey(context), RHUtil.readRhCampaignID(context))
