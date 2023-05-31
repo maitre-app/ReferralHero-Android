@@ -35,8 +35,17 @@
 
         </activity>
 
+        <receiver
+            android:name="com.sdk.rh.RhReferrerReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.android.vending.INSTALL_REFERRER" />
+            </intent-filter>
+        </receiver>
+
         <meta-data
-            android:name="com.rh.sdk.RhKey"
+            android:name="com.rh.sdk.ApiKey"
             android:value="00f9e163fd6d54b18631fd255a91ce06b959bd5c" />
 
         <meta-data

@@ -1,5 +1,9 @@
 package com.example.referralsdk;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -8,30 +12,44 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.gson.Gson;
+import com.sdk.rh.DeviceInfo;
 import com.sdk.rh.RH;
+import com.sdk.rh.RhReferrerReceiver;
 import com.sdk.rh.networking.ApiResponse;
 import com.sdk.rh.networking.ListSubscriberData;
 import com.sdk.rh.networking.RankingDataContent;
 import com.sdk.rh.networking.ReferralParams;
+import com.sdk.rh.networking.SubscriberData;
 
 
 public class MainActivity extends AppCompatActivity implements RH.RHReferralCallBackListener, View.OnClickListener, RH.RHMyReferralCallBackListener, RH.RHLeaderBoardReferralCallBackListener {
 
 
-    Button btnAdd, btnGet, btnVisitor, btnDelete, btnUpdate, btnTrack, btnOrgTrack, btnPending, btnConfirm, btnGetCampaign, btnGetReferral, btnCapture;
+    private final BroadcastReceiver mUpdateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.e("Referre Code", RH.getInstance().getPrefHelper().getAppStoreReferrer());
+        }
+    };
     TextView txtReponse;
+    Button btnAdd, btnGet, btnShareLink, btnDelete, btnUpdate, btnTrack, btnOrgTrack, btnPending, btnConfirm, btnGetCampaign, btnGetReferral, btnCapture;
+    DeviceInfo deviceInfo;
+    RH rh;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        deviceInfo = new DeviceInfo(this);
+        rh = RH.getInstance();
 
         btnAdd = findViewById(R.id.btnAdd);
         btnGet = findViewById(R.id.btnGet);
         btnDelete = findViewById(R.id.btnDelete);
-        btnVisitor = findViewById(R.id.btnVisitor);
+        btnShareLink = findViewById(R.id.btnVisitor);
         btnUpdate = findViewById(R.id.btnUpdate);
         btnTrack = findViewById(R.id.btnTrack);
         btnOrgTrack = findViewById(R.id.btnOrgTrack);
@@ -53,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
         btnCapture.setOnClickListener(this);
         btnDelete.setOnClickListener(this);
         btnUpdate.setOnClickListener(this);
-        btnVisitor.setOnClickListener(this);
+        btnShareLink.setOnClickListener(this);
 
     }
 
@@ -79,53 +97,63 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
                 referralParams.setName("AndiDe4v");
                 referralParams.setReferrer("");
                 referralParams.setUuid("MF4345c63888");
-                RH.getInstance().formSubmit(this, referralParams);
-                RH.getInstance().getPrefHelper().getRHReferralLink();
+                referralParams.setDevice("Android");
+                referralParams.setOsType(deviceInfo.getOperatingSystem());
+                rh.formSubmit(new RH.RHReferralCallBackListener() {
+                    @Override
+                    public void onSuccessCallback(@Nullable ApiResponse<SubscriberData> response) {
+
+                    }
+
+                    @Override
+                    public void onFailureCallback(@Nullable ApiResponse<SubscriberData> response) {
+
+                    }
+                }, referralParams);
+                rh.getPrefHelper().getRHReferralLink();
                 break;
 
             case R.id.btnGet:
-                RH.getInstance().getSubscriberByID(this);
+                rh.getSubscriberByID(this);
                 break;
             case R.id.btnDelete:
-                RH.getInstance().deleteSubscriberByID(this);
+                rh.deleteSubscriberByID(this);
                 break;
             case R.id.btnUpdate:
                 referralParams.setName("AndiDevOps");
-                RH.getInstance().updateSubscriberByID(this, referralParams);
+                rh.updateSubscriberByID(this, referralParams);
                 break;
             case R.id.btnTrack:
                 referralParams.setEmail("Jayden@gmail.com");
                 referralParams.setName("AndiDev");
-                RH.getInstance().trackReferral(this, referralParams);
+                rh.trackReferral(this, referralParams);
                 break;
             case R.id.btnCapture:
                 referralParams.setSocial("Whatsapp");
-                RH.getInstance().captureShare(this, referralParams);
+                rh.captureShare(this, referralParams);
                 break;
 
             case R.id.btnGetReferral:
-                RH.getInstance().getMyReferrals(this);
+                rh.getMyReferrals(this);
                 break;
             case R.id.btnGetCampaign:
-                RH.getInstance().getLeaderboard(this);
+                rh.getLeaderboard(this);
                 break;
             case R.id.btnPending:
                 referralParams.setEmail("Jayden@gmail.com");
                 referralParams.setName("AndiDev");
-                RH.getInstance().pendingReferral(this, referralParams);
-                break;
-            case R.id.btnVisitor:
-                referralParams.setEmail("Jayden@gmail.com");
-                referralParams.setName("AndiDev");
-                RH.getInstance().visitorReferral(this, referralParams);
+                rh.pendingReferral(this, referralParams);
                 break;
             case R.id.btnOrgTrack:
                 referralParams.setEmail("Jayden@gmail.com");
                 referralParams.setName("AndiDev");
-                RH.getInstance().organicTrackReferral(this, referralParams);
+                rh.organicTrackReferral(this, referralParams);
                 break;
             case R.id.btnConfirm:
-                RH.getInstance().confirmReferral(this, referralParams);
+                rh.confirmReferral(this, referralParams);
+                break;
+            case R.id.btnVisitor:
+
                 break;
 
         }
@@ -149,5 +177,18 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
     @Override
     public void onLeaderBoardReferralFailureCallback(@Nullable ApiResponse<RankingDataContent> response) {
         Log.e("onLeaderBoardSuccess", new Gson().toJson(response));
+    }
+
+
+    @Override
+    protected void onPause() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mUpdateReceiver);
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        LocalBroadcastManager.getInstance(this).registerReceiver(mUpdateReceiver, new IntentFilter(new RhReferrerReceiver().getACTION_UPDATE_DATA()));
+        super.onResume();
     }
 }

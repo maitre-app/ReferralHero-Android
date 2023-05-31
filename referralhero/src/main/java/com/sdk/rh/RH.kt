@@ -21,10 +21,11 @@ class RH(var context_: Context) {
     private var myReferralCallback: RHMyReferralCallBackListener? = null
     private var leaderBoardReferralCallback: RHLeaderBoardReferralCallBackListener? = null
 
-
+    var logger: Logger? = null
     init {
         deviceInfo = DeviceInfo(context_)
         prefHelper = PrefHelper(context_)
+        logger = Logger()
         referralNetworkClient = ReferralNetworkClient()
     }
 
@@ -46,7 +47,7 @@ class RH(var context_: Context) {
                 }
             } catch (exception: Exception) {
                 withContext(Dispatchers.Main) {
-                    PrefHelper.Debug(exception.toString())
+                    logger?.error(exception.toString())
                 }
             }
         }
@@ -70,7 +71,7 @@ class RH(var context_: Context) {
                 }
             } catch (exception: Exception) {
                 withContext(Dispatchers.Main) {
-                    PrefHelper.Debug(exception.toString())
+                    logger?.error(exception.toString())
                 }
             }
         }
@@ -94,7 +95,7 @@ class RH(var context_: Context) {
                 }
             } catch (exception: Exception) {
                 withContext(Dispatchers.Main) {
-                    PrefHelper.Debug(exception.toString())
+                    logger?.error(exception.toString())
                 }
             }
         }
@@ -122,7 +123,7 @@ class RH(var context_: Context) {
                 }
             } catch (exception: Exception) {
                 withContext(Dispatchers.Main) {
-                    PrefHelper.Debug(exception.toString())
+                    logger?.error(exception.toString())
                     //callback?.onFailureCallback(exception)
                 }
             }
@@ -155,7 +156,7 @@ class RH(var context_: Context) {
                 }
             } catch (exception: Exception) {
                 withContext(Dispatchers.Main) {
-                    PrefHelper.Debug(exception.toString())
+                    logger?.error(exception.toString())
                 }
             }
         }
@@ -179,7 +180,7 @@ class RH(var context_: Context) {
                 }
             } catch (exception: Exception) {
                 withContext(Dispatchers.Main) {
-                    PrefHelper.Debug(exception.toString())
+                    logger?.error(exception.toString())
                 }
             }
         }
@@ -204,7 +205,7 @@ class RH(var context_: Context) {
                 }
             } catch (exception: Exception) {
                 withContext(Dispatchers.Main) {
-                    PrefHelper.Debug(exception.toString())
+                    logger?.error(exception.toString())
                 }
             }
         }
@@ -232,7 +233,7 @@ class RH(var context_: Context) {
                 }
             } catch (exception: Exception) {
                 withContext(Dispatchers.Main) {
-                    PrefHelper.Debug(exception.toString())
+                    logger?.error(exception.toString())
                 }
             }
         }
@@ -257,7 +258,7 @@ class RH(var context_: Context) {
                 }
             } catch (exception: Exception) {
                 withContext(Dispatchers.Main) {
-                    PrefHelper.Debug(exception.toString())
+                    logger?.error(exception.toString())
                 }
             }
         }
@@ -277,6 +278,7 @@ class RH(var context_: Context) {
             if (ordinal == ApiConstants.OperationType.ADD.ordinal) {
                 response.data?.let {
                     prefHelper.rHReferralLink = it.referral_link
+                    prefHelper.appStoreReferrer = it.universal_link
                     prefHelper.rHSubscriberID = it.id
                 }
             }
@@ -309,7 +311,7 @@ class RH(var context_: Context) {
                 }
             } catch (exception: Exception) {
                 withContext(Dispatchers.Main) {
-                    PrefHelper.Debug(exception.toString())
+                    logger?.error(exception.toString())
                 }
             }
         }
@@ -337,7 +339,7 @@ class RH(var context_: Context) {
                 }
             } catch (exception: Exception) {
                 withContext(Dispatchers.Main) {
-                    PrefHelper.Debug(exception.toString())
+                    logger?.error(exception.toString())
                 }
             }
         }
@@ -410,18 +412,18 @@ class RH(var context_: Context) {
         @Synchronized
         private fun initRHSDK(context: Context, RHaccessToken: String?, RHuuid: String?): RH? {
             if (RHReferral_ != null) {
-                PrefHelper.Debug("Warning, attempted to reinitialize RH SDK singleton!")
+                Logger().debug("Warning, attempted to reinitialize RH SDK singleton!")
                 return RHReferral_
             }
             RHReferral_ = RH(context.applicationContext)
             if (TextUtils.isEmpty(RHaccessToken)) {
-                PrefHelper.Debug("Warning: Please enter your access_token in your project's Manifest file!")
+                Logger().debug("Warning: Please enter your access_token in your project's Manifest file!")
                 RHReferral_!!.prefHelper.setRHAccessTokenKey(PrefHelper.NO_STRING_VALUE)
             } else {
                 RHReferral_!!.prefHelper.setRHAccessTokenKey(RHaccessToken)
             }
             if (TextUtils.isEmpty(RHuuid)) {
-                PrefHelper.Debug("Warning: Please enter your Campaign  uuid in your project's Manifest file!")
+                Logger().debug("Warning: Please enter your Campaign  uuid in your project's Manifest file!")
                 RHReferral_!!.prefHelper.setRHCampaignID(PrefHelper.NO_STRING_VALUE)
             } else {
                 RHReferral_!!.prefHelper.setRHCampaignID(RHuuid)

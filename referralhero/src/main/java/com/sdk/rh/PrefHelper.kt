@@ -57,6 +57,11 @@ class PrefHelper(context: Context) {
         setString(KEY_RH_CAMPAIGN_ID, key)
     }
 
+
+    fun setRHPlaystoreLink(key: String?) {
+        setString(KEY_RH_PLAYSTORE_LINK, key)
+    }
+
     val rhCampaignID: String?
         get() = getString(KEY_RH_CAMPAIGN_ID)
 
@@ -69,6 +74,12 @@ class PrefHelper(context: Context) {
         get() = getString(KEY_RH_LINK)
         set(rhReferralLink) {
             setString(KEY_RH_LINK, rhReferralLink)
+        }
+
+    var RHPlayStoreLink: String?
+        get() = getString(KEY_RH_PLAYSTORE_LINK)
+        set(RHPlayStoreLink) {
+            setString(KEY_RH_PLAYSTORE_LINK, RHPlayStoreLink)
         }
 
     val rhAccessTokenKey: String?
@@ -338,6 +349,7 @@ class PrefHelper(context: Context) {
         const val NO_STRING_VALUE = "NO_STRING_VALUE"
         const val KEY_RH_ACCESS_TOKEN = "KEY_RH_ACCESS_TOKEN"
         const val KEY_RH_LINK = "KEY_RH_LINK"
+        const val KEY_RH_PLAYSTORE_LINK = "KEY_RH_PLAYSTORE_LINK"
         const val KEY_RH_CAMPAIGN_ID = "KEY_RH_CAMPAIGN_ID"
         const val KEY_RH_SUBSCRIBER_ID = "KEY_RH_SUBSCRIBER_ID"
 

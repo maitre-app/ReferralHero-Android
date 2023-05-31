@@ -2,6 +2,7 @@ package com.sdk.rh
 
 import android.content.Context
 import android.content.pm.PackageManager
+import java.util.*
 
 /**
  * Class for RH utility methods
@@ -12,7 +13,7 @@ object RHUtil {
      */
     fun readRhKey(context: Context): String {
         var RHKey: String? = null
-        val metaDataKey = "com.rh.sdk.RhKey"
+        val metaDataKey = "com.rh.sdk.ApiKey"
         // manifest overrides string resources
         try {
             val ai = context.packageManager.getApplicationInfo(
@@ -22,7 +23,7 @@ object RHUtil {
             if (ai.metaData != null) {
                 RHKey = ai.metaData.getString(metaDataKey)
                 if (RHKey == null) {
-                    RHKey = ai.metaData.getString("com.rh.sdk.RhKey")
+                    RHKey = ai.metaData.getString("com.rh.sdk.ApiKey")
                 }
             }
         } catch (ignore: PackageManager.NameNotFoundException) {
@@ -64,4 +65,9 @@ object RHUtil {
             resources.getString(resources.getIdentifier(metaDataKey, "string", context.packageName))
         return RHKey
     }
+
+    fun formatString(format: String?, vararg args: Any?): String? {
+        return java.lang.String.format(Locale.US, format, args)
+    }
+
 }
