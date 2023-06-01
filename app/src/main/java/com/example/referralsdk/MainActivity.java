@@ -25,7 +25,7 @@ import com.sdk.referral.networking.ReferralParams;
 import com.sdk.referral.networking.SubscriberData;
 
 
-public class MainActivity extends AppCompatActivity implements RH.RHReferralCallBackListener, View.OnClickListener, RH.RHMyReferralCallBackListener, RH.RHLeaderBoardReferralCallBackListener {
+public class MainActivity extends AppCompatActivity implements RH.RHReferralCallBackListener, View.OnClickListener, RH.RHMyReferralCallBackListener, RH.RHLeaderboardReferralCallBackListener {
 
 
     private final BroadcastReceiver mUpdateReceiver = new BroadcastReceiver() {
@@ -137,14 +137,14 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
                 rh.getMyReferrals(this);
                 break;
             case R.id.btnGetCampaign:
-                rh.getLeaderboard(new RH.RHLeaderBoardReferralCallBackListener() {
+                rh.getLeaderboard(new RH.RHLeaderboardReferralCallBackListener() {
                     @Override
-                    public void onLeaderBoardReferralSuccessCallback(@Nullable ApiResponse<RankingDataContent> response) {
+                    public void onLeaderboardReferralSuccessCallback(@Nullable ApiResponse<RankingDataContent> response) {
 
                     }
 
                     @Override
-                    public void onLeaderBoardReferralFailureCallback(@Nullable ApiResponse<RankingDataContent> response) {
+                    public void onLeaderboardReferralFailureCallback(@Nullable ApiResponse<RankingDataContent> response) {
 
                     }
                 });
@@ -180,12 +180,12 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
     }
 
     @Override
-    public void onLeaderBoardReferralSuccessCallback(@Nullable ApiResponse<RankingDataContent> response) {
+    public void onLeaderboardReferralSuccessCallback(@Nullable ApiResponse<RankingDataContent> response) {
         Log.e("onLeaderBoardSuccess", new Gson().toJson(response));
     }
 
     @Override
-    public void onLeaderBoardReferralFailureCallback(@Nullable ApiResponse<RankingDataContent> response) {
+    public void onLeaderboardReferralFailureCallback(@Nullable ApiResponse<RankingDataContent> response) {
         Log.e("onLeaderBoardSuccess", new Gson().toJson(response));
     }
 

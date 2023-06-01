@@ -13,7 +13,7 @@ object RHUtil {
      */
     fun readRhKey(context: Context): String {
         var RHKey: String? = null
-        val metaDataKey = "com.rh.sdk.ApiKey"
+        val metaDataKey = "com.sdk.referral.ApiKey"
         // manifest overrides string resources
         try {
             val ai = context.packageManager.getApplicationInfo(
@@ -23,7 +23,7 @@ object RHUtil {
             if (ai.metaData != null) {
                 RHKey = ai.metaData.getString(metaDataKey)
                 if (RHKey == null) {
-                    RHKey = ai.metaData.getString("com.rh.sdk.ApiKey")
+                    RHKey = ai.metaData.getString("com.sdk.referral.ApiKey")
                 }
             }
         } catch (ignore: PackageManager.NameNotFoundException) {
@@ -42,7 +42,7 @@ object RHUtil {
      */
     fun readRhCampaignID(context: Context): String {
         var RHKey: String? = null
-        val metaDataKey = "com.rh.sdk.uuid"
+        val metaDataKey = "com.sdk.referral.uuid"
         // manifest overrides string resources
         try {
             val ai = context.packageManager.getApplicationInfo(
@@ -52,7 +52,7 @@ object RHUtil {
             if (ai.metaData != null) {
                 RHKey = ai.metaData.getString(metaDataKey)
                 if (RHKey == null) {
-                    RHKey = ai.metaData.getString("com.rh.sdk.uuid")
+                    RHKey = ai.metaData.getString("com.sdk.referral.uuid")
                 }
             }
         } catch (ignore: PackageManager.NameNotFoundException) {

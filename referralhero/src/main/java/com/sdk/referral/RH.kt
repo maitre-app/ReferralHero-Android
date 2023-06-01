@@ -19,7 +19,7 @@ class RH(var context_: Context) {
     private var removeSubscriberCallback: RHReferralCallBackListener? = null
     private var trackReferralCallback: RHReferralCallBackListener? = null
     private var myReferralCallback: RHMyReferralCallBackListener? = null
-    private var leaderBoardReferralCallback: RHLeaderBoardReferralCallBackListener? = null
+    private var leaderBoardReferralCallback: RHLeaderboardReferralCallBackListener? = null
 
     var logger: Logger? = null
     init {
@@ -326,7 +326,7 @@ class RH(var context_: Context) {
     - Implemented `handleLeaderBoardReferralApiResponse` to process the API response and invoke the appropriate callbacks.
     - Added error handling using `try-catch` block to catch any exceptions during the network request.
     * */
-    fun getLeaderboard(callback: RHLeaderBoardReferralCallBackListener?) {
+    fun getLeaderboard(callback: RHLeaderboardReferralCallBackListener?) {
         leaderBoardReferralCallback = callback
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -365,9 +365,9 @@ class RH(var context_: Context) {
      * **/
     private fun handleLeaderBoardReferralApiResponse(response: ApiResponse<RankingDataContent>) {
         if (response.status == "ok") {
-            leaderBoardReferralCallback?.onLeaderBoardReferralSuccessCallback(response)
+            leaderBoardReferralCallback?.onLeaderboardReferralSuccessCallback(response)
         } else {
-            leaderBoardReferralCallback?.onLeaderBoardReferralFailureCallback(response)
+            leaderBoardReferralCallback?.onLeaderboardReferralFailureCallback(response)
         }
     }
 
@@ -381,9 +381,9 @@ class RH(var context_: Context) {
         fun onMyReferralFailureCallback(response: ApiResponse<ListSubscriberData>?)
     }
 
-    interface RHLeaderBoardReferralCallBackListener {
-        fun onLeaderBoardReferralSuccessCallback(response: ApiResponse<RankingDataContent>?)
-        fun onLeaderBoardReferralFailureCallback(response: ApiResponse<RankingDataContent>?)
+    interface RHLeaderboardReferralCallBackListener {
+        fun onLeaderboardReferralSuccessCallback(response: ApiResponse<RankingDataContent>?)
+        fun onLeaderboardReferralFailureCallback(response: ApiResponse<RankingDataContent>?)
     }
 
     companion object {
@@ -418,15 +418,15 @@ class RH(var context_: Context) {
             RHReferral_ = RH(context.applicationContext)
             if (TextUtils.isEmpty(RHaccessToken)) {
                 Logger().debug("Warning: Please enter your access_token in your project's Manifest file!")
-                RHReferral_!!.prefHelper.setRHAccessTokenKey(PrefHelper.NO_STRING_VALUE)
+                RHReferral_?.prefHelper?.setRHAccessTokenKey(PrefHelper.NO_STRING_VALUE)
             } else {
-                RHReferral_!!.prefHelper.setRHAccessTokenKey(RHaccessToken)
+                RHReferral_?.prefHelper?.setRHAccessTokenKey(RHaccessToken)
             }
             if (TextUtils.isEmpty(RHuuid)) {
                 Logger().debug("Warning: Please enter your Campaign  uuid in your project's Manifest file!")
-                RHReferral_!!.prefHelper.setRHCampaignID(PrefHelper.NO_STRING_VALUE)
+                RHReferral_?.prefHelper?.setRHCampaignID(PrefHelper.NO_STRING_VALUE)
             } else {
-                RHReferral_!!.prefHelper.setRHCampaignID(RHuuid)
+                RHReferral_?.prefHelper?.setRHCampaignID(RHuuid)
             }
             return RHReferral_
         }

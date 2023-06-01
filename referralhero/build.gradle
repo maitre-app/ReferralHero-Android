@@ -65,6 +65,7 @@ afterEvaluate {
             release(MavenPublication) {
                 from components.release
                 groupId = "com.github.Jayden-ais"
+                //replace with you github user name and custom domain name
                 artifactId = getArtificatId()
                 version = getVersionName()
             }
