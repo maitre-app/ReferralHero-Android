@@ -2,7 +2,7 @@ package com.example.referralsdk;
 
 import android.app.Application;
 
-import com.sdk.rh.RH;
+import com.sdk.referral.RH;
 
 public class MyApp extends Application {
 

@@ -1,4 +1,4 @@
-package com.sdk.rh.networking
+package com.sdk.referral.networking
 
 import okhttp3.Call
 

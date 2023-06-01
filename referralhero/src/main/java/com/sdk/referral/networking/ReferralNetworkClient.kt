@@ -1,10 +1,10 @@
-package com.sdk.rh.networking
+package com.sdk.referral.networking
 
 import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.sdk.rh.PrefHelper
-import com.sdk.rh.RHUtil
+import com.sdk.referral.PrefHelper
+import com.sdk.referral.RHUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull

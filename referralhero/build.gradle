@@ -12,12 +12,12 @@ def getVersionName = { ->
 }
 
 def getArtificatId = { ->
-    return "RHSDK" // Replace with library name ID
+    return "sdk" // Replace with library name ID
 }
 
 
 android {
-    namespace 'com.sdk.rh'
+    namespace 'com.referral.hero'
     compileSdk 33
 
     defaultConfig {

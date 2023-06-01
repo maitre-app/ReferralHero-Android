@@ -15,14 +15,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.gson.Gson;
-import com.sdk.rh.DeviceInfo;
-import com.sdk.rh.RH;
-import com.sdk.rh.RhReferrerReceiver;
-import com.sdk.rh.networking.ApiResponse;
-import com.sdk.rh.networking.ListSubscriberData;
-import com.sdk.rh.networking.RankingDataContent;
-import com.sdk.rh.networking.ReferralParams;
-import com.sdk.rh.networking.SubscriberData;
+import com.sdk.referral.DeviceInfo;
+import com.sdk.referral.RH;
+import com.sdk.referral.RhReferrerReceiver;
+import com.sdk.referral.networking.ApiResponse;
+import com.sdk.referral.networking.ListSubscriberData;
+import com.sdk.referral.networking.RankingDataContent;
+import com.sdk.referral.networking.ReferralParams;
+import com.sdk.referral.networking.SubscriberData;
 
 
 public class MainActivity extends AppCompatActivity implements RH.RHReferralCallBackListener, View.OnClickListener, RH.RHMyReferralCallBackListener, RH.RHLeaderBoardReferralCallBackListener {

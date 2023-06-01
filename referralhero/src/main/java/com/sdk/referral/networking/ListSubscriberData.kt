@@ -1,4 +1,4 @@
-package com.sdk.rh.networking
+package com.sdk.referral.networking
 
 data class ListSubscriberData(
     val response: String, val subscribers: List<SubscriberData>, val pagination: Pagination

@@ -1,8 +1,8 @@
-package com.sdk.rh
+package com.sdk.referral
 
 import android.content.Context
 import android.text.TextUtils
-import com.sdk.rh.networking.*
+import com.sdk.referral.networking.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

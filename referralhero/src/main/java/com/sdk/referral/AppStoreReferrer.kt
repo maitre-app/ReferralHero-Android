@@ -1,4 +1,4 @@
-package com.sdk.rh
+package com.sdk.referral
 
 import android.content.Context
 import android.text.TextUtils

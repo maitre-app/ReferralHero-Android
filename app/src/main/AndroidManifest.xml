@@ -36,7 +36,7 @@
         </activity>
 
         <receiver
-            android:name="com.sdk.rh.RhReferrerReceiver"
+            android:name="com.sdk.referral.RhReferrerReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
