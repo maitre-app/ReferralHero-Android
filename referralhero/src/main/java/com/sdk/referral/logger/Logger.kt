@@ -1,4 +1,4 @@
-package com.sdk.referral.Logger
+package com.sdk.referral.logger
 
 import android.util.Log
 import com.sdk.referral.utils.RHUtil.formatString

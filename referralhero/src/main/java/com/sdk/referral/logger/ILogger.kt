@@ -1,4 +1,4 @@
-package com.sdk.referral.Logger
+package com.sdk.referral.logger
 
 interface ILogger {
     fun setLogLevel(logLevel: LogLevel?, isProductionEnvironment: Boolean)

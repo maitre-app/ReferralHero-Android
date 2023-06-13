@@ -2,7 +2,7 @@ package com.sdk.referral
 
 import android.content.Context
 import android.text.TextUtils
-import com.sdk.referral.Logger.Logger
+import com.sdk.referral.logger.Logger
 import com.sdk.referral.model.*
 import com.sdk.referral.networking.ApiConstants
 import com.sdk.referral.networking.ReferralNetworkClient
