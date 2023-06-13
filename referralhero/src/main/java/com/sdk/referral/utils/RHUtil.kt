@@ -1,4 +1,4 @@
-package com.sdk.referral
+package com.sdk.referral.utils
 
 import android.content.Context
 import android.content.pm.PackageManager
@@ -13,7 +13,7 @@ object RHUtil {
      */
     fun readRhKey(context: Context): String {
         var RHKey: String? = null
-        val metaDataKey = "com.sdk.referral.ApiKey"
+        val metaDataKey = "com.sdk.referral.RhKey"
         // manifest overrides string resources
         try {
             val ai = context.packageManager.getApplicationInfo(
@@ -23,7 +23,7 @@ object RHUtil {
             if (ai.metaData != null) {
                 RHKey = ai.metaData.getString(metaDataKey)
                 if (RHKey == null) {
-                    RHKey = ai.metaData.getString("com.sdk.referral.ApiKey")
+                    RHKey = ai.metaData.getString("com.sdk.referral.RhKey")
                 }
             }
         } catch (ignore: PackageManager.NameNotFoundException) {

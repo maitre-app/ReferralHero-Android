@@ -1,4 +1,4 @@
-package com.sdk.referral
+package com.sdk.referral.utils
 
 /**
  *

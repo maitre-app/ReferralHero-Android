@@ -33,6 +33,6 @@ interface ApiConstants {
     }
 
     enum class OperationType {
-        DELETE, ADD, GET, TRACK, CAPTURE, MYREFERRAL, LEADERBOARD, UPDATE
+        DELETE, ADD, GET, TRACK, CAPTURE, MYREFERRAL, LEADERBOARD, UPDATE, VISITORREFERRAL
     }
 }

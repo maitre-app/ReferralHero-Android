@@ -82,6 +82,7 @@
                 android:id="@+id/btnVisitor"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:visibility="gone"
                 android:layout_marginTop="10dp"
                 android:text="Share Referral Link" />
 
@@ -99,6 +100,20 @@
                 android:layout_marginTop="10dp"
                 android:text="Confirm Referral(Convert Status from unconfirmed to confirmed)" />
 
+
+            <Button
+                android:id="@+id/btnReward"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Rewards" />
+
+            <Button
+                android:id="@+id/btnReferrer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="Referrer" />
 
             <TextView
                 android:id="@+id/txtReponse"

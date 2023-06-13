@@ -1,4 +1,4 @@
-package com.sdk.referral
+package com.sdk.referral.Logger
 
 import android.util.Log
 

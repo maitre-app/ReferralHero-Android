@@ -1,7 +1,8 @@
-package com.sdk.referral
+package com.sdk.referral.utils
 
 import android.content.Context
 import android.os.Build
+import android.util.DisplayMetrics
 import java.net.InetAddress
 import java.net.NetworkInterface
 
@@ -73,12 +74,20 @@ class DeviceInfo(private val context: Context) {
             val addresses = networkInterface.inetAddresses
             while (addresses.hasMoreElements()) {
                 val address = addresses.nextElement()
-                if (!address.isLoopbackAddress && address is InetAddress && address.hostAddress?.contains(":")?.not() == true) {
+                if (!address.isLoopbackAddress && address is InetAddress && address.hostAddress?.contains(
+                        ":"
+                    )?.not() == true
+                ) {
                     return address.hostAddress
                 }
             }
         }
         return null
+    }
+
+    fun getDeviceScreenSize(): String? {
+        val displaymetrics: DisplayMetrics = context.resources.displayMetrics
+        return displaymetrics.heightPixels.toString() + "*" + displaymetrics.widthPixels.toString()
     }
 
     //getOperatingSystem() will return the Android operating system name

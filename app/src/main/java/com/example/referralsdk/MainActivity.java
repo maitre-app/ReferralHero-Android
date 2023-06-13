@@ -15,17 +15,17 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.gson.Gson;
-import com.sdk.referral.DeviceInfo;
 import com.sdk.referral.RH;
-import com.sdk.referral.RhReferrerReceiver;
-import com.sdk.referral.networking.ApiResponse;
-import com.sdk.referral.networking.ListSubscriberData;
-import com.sdk.referral.networking.RankingDataContent;
-import com.sdk.referral.networking.ReferralParams;
-import com.sdk.referral.networking.SubscriberData;
+import com.sdk.referral.model.ApiResponse;
+import com.sdk.referral.model.ListSubscriberData;
+import com.sdk.referral.model.RankingDataContent;
+import com.sdk.referral.model.ReferralParams;
+import com.sdk.referral.model.SubscriberData;
+import com.sdk.referral.receiver.RhReferrerReceiver;
+import com.sdk.referral.utils.DeviceInfo;
 
 
-public class MainActivity extends AppCompatActivity implements RH.RHReferralCallBackListener, View.OnClickListener, RH.RHMyReferralCallBackListener, RH.RHLeaderboardReferralCallBackListener {
+public class MainActivity extends AppCompatActivity implements RH.RHReferralCallBackListener, View.OnClickListener, RH.RHMyReferralCallBackListener, RH.RHLeaderBoardReferralCallBackListener, RH.RHRewardCallBackListener {
 
 
     private final BroadcastReceiver mUpdateReceiver = new BroadcastReceiver() {
@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
         }
     };
     TextView txtReponse;
-    Button btnAdd, btnGet, btnShareLink, btnDelete, btnUpdate, btnTrack, btnOrgTrack, btnPending, btnConfirm, btnGetCampaign, btnGetReferral, btnCapture;
+    Button btnAdd, btnGet, btnReward, btnReffer, btnShareLink, btnDelete, btnUpdate, btnTrack, btnOrgTrack, btnPending, btnConfirm, btnGetCampaign, btnGetReferral, btnCapture;
     DeviceInfo deviceInfo;
     RH rh;
 
@@ -58,6 +58,8 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
         btnGetCampaign = findViewById(R.id.btnGetCampaign);
         btnGetReferral = findViewById(R.id.btnGetReferral);
         btnCapture = findViewById(R.id.btnCapture);
+        btnReward = findViewById(R.id.btnReward);
+        btnReffer = findViewById(R.id.btnReferrer);
         txtReponse = findViewById(R.id.txtReponse);
 
         btnAdd.setOnClickListener(this);
@@ -71,6 +73,8 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
         btnCapture.setOnClickListener(this);
         btnDelete.setOnClickListener(this);
         btnUpdate.setOnClickListener(this);
+        btnReffer.setOnClickListener(this);
+        btnReward.setOnClickListener(this);
         btnShareLink.setOnClickListener(this);
 
     }
@@ -137,17 +141,7 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
                 rh.getMyReferrals(this);
                 break;
             case R.id.btnGetCampaign:
-                rh.getLeaderboard(new RH.RHLeaderboardReferralCallBackListener() {
-                    @Override
-                    public void onLeaderboardReferralSuccessCallback(@Nullable ApiResponse<RankingDataContent> response) {
-
-                    }
-
-                    @Override
-                    public void onLeaderboardReferralFailureCallback(@Nullable ApiResponse<RankingDataContent> response) {
-
-                    }
-                });
+                rh.getLeaderboard(this);
                 break;
             case R.id.btnPending:
                 referralParams.setEmail("Jayden@gmail.com");
@@ -162,8 +156,15 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
             case R.id.btnConfirm:
                 rh.confirmReferral(this);
                 break;
-            case R.id.btnVisitor:
-
+            case R.id.btnReward:
+                rh.getRewards(this);
+                break;
+            case R.id.btnReferrer:
+                referralParams.setOsType(rh.getDeviceInfo().getOperatingSystem());
+                referralParams.setDevice(rh.getDeviceInfo().getDeviceModel());
+                referralParams.setIp_address(rh.getDeviceInfo().getIpAddress());
+                referralParams.setScreen_size(rh.getDeviceInfo().getDeviceScreenSize());
+                //rh.getReferrer(this,referralParams);
                 break;
 
         }
@@ -179,16 +180,6 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
         Log.e("onMyReferralSuccess", new Gson().toJson(response));
     }
 
-    @Override
-    public void onLeaderboardReferralSuccessCallback(@Nullable ApiResponse<RankingDataContent> response) {
-        Log.e("onLeaderBoardSuccess", new Gson().toJson(response));
-    }
-
-    @Override
-    public void onLeaderboardReferralFailureCallback(@Nullable ApiResponse<RankingDataContent> response) {
-        Log.e("onLeaderBoardSuccess", new Gson().toJson(response));
-    }
-
 
     @Override
     protected void onPause() {
@@ -200,5 +191,25 @@ public class MainActivity extends AppCompatActivity implements RH.RHReferralCall
     protected void onResume() {
         LocalBroadcastManager.getInstance(this).registerReceiver(mUpdateReceiver, new IntentFilter(new RhReferrerReceiver().getACTION_UPDATE_DATA()));
         super.onResume();
+    }
+
+    @Override
+    public void onLeaderBoardReferralSuccessCallback(@Nullable ApiResponse<RankingDataContent> response) {
+        Log.e("onLeaderBoardSuccess", new Gson().toJson(response));
+    }
+
+    @Override
+    public void onLeaderBoardReferralFailureCallback(@Nullable ApiResponse<RankingDataContent> response) {
+        Log.e("onLeaderBoardSuccess", new Gson().toJson(response));
+    }
+
+    @Override
+    public void onRewardSuccessCallback(@Nullable ApiResponse<ListSubscriberData> response) {
+        Log.e("onLeaderBoardSuccess", new Gson().toJson(response));
+    }
+
+    @Override
+    public void onRewardFailureCallback(@Nullable ApiResponse<ListSubscriberData> response) {
+        Log.e("onLeaderBoardSuccess", new Gson().toJson(response));
     }
 }

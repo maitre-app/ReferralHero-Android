@@ -3,8 +3,9 @@ package com.sdk.referral.networking
 import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.sdk.referral.PrefHelper
-import com.sdk.referral.RHUtil
+import com.sdk.referral.model.*
+import com.sdk.referral.utils.PrefHelper
+import com.sdk.referral.utils.RHUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -238,4 +239,32 @@ class ReferralNetworkClient {
             }
         }
     }
+
+    suspend fun serverRequestRewardAsync(
+        context: Context, endpoint: String
+    ): ApiResponse<ListSubscriberData> {
+
+        val urlBuilder = (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()?.newBuilder()
+        val url = urlBuilder?.build()?.toString()
+        val requestBuilder =
+            Request.Builder().url(url!!).addHeader("Authorization", RHUtil.readRhKey(context))
+                .addHeader("Accept", "application/vnd.referralhero.v1")
+                .addHeader("Content-Type", "application/json").get()
+
+        val request = requestBuilder.build()
+        return withContext(Dispatchers.IO) {
+            val response = client.newCall(request).execute()
+            val responseString = response.body?.string()
+            val parsedResponse: ApiResponse<ListSubscriberData> = gson.fromJson(
+                responseString,
+                object : TypeToken<ApiResponse<ListSubscriberData>>() {}.type
+            )
+            if (response.code == 200) {
+                parsedResponse
+            } else {
+                ApiResponse("error", parsedResponse.message, parsedResponse.code, null, null, 0)
+            }
+        }
+    }
+
 }

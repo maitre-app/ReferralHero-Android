@@ -1,4 +1,4 @@
-package com.sdk.referral.networking
+package com.sdk.referral.model
 
 class ReferralParams {
     var transactionId: String? = null
@@ -22,5 +22,8 @@ class ReferralParams {
     var osType: String? = null
     var screenSize: String? = null
     var social: String? = null
+    var ip_address: String? = null
+    var screen_size: String? = null
+    var hosting_url: String? = null
 
 }
