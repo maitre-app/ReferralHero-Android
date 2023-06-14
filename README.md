@@ -8,3 +8,64 @@ The Referral Hero SDK is a powerful tool for integrating referral functionality 
 
 To begin using the Referral Hero SDK, follow these steps:
 
+## Setup
+### 1. Import JitPack Android Library
+Add `maven { url 'https://jitpack.io' }` in
+<details open>
+  <summary>groovy - settings.gradle</summary>
+
+```gradle
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+
+        maven { url 'https://jitpack.io' }
+    }
+}
+```
+</details>
+
+<details open>
+  <summary>kotlin - settings.gradle.kts</summary>
+
+```gradle
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+
+        maven ("https://jitpack.io")
+    }
+}
+```
+</details>
+
+### 2. Add dependency
+<details open>
+  <summary>groovy - build.gradle</summary>
+
+```gradle
+dependencies {
+    implementation "com.github.maitre-app:ReferralHero-Android:0.0.1"
+}
+```
+</details>
+<details open>
+  <summary>kotlin - build.gradle.kts</summary>
+
+```gradle
+dependencies {
+    implementation("com.github.maitre-app:ReferralHero-Android:0.0.1")
+}
+```
+</details>
+
+## Usage
+
+### Examples
+| APIs | App Examples |
+| --- | --- |
+| All AP is demo | [MainScreen.kt](https://github.com/maitre-app/ReferralHero-Android/blob/master/app/src/main/java/com/example/referralsdk/MainActivity.kt) - Show all API usages|
