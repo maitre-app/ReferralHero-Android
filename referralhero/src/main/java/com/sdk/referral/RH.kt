@@ -224,17 +224,16 @@ class RH(var context_: Context) {
     }
 
     fun getReferrer(
-        callback: RHReferralCallBackListener?, referralParams: ReferralParams
+        callback: RHReferralCallBackListener?
     ) {
         registerSubscriberCallback = callback
         try {
-            referralNetworkClient.serverRequestCallBackAsync(
+            referralNetworkClient.serverRequestGetReferrerAsync(
                 context_,
                 "${RHUtil.readRhCampaignID(context_)}/subscribers/referrer",
-                referralParams
             ) { response ->
                 // Handle the response in the callback
-                handleApiResponse(response, ApiConstants.OperationType.CAPTURE.ordinal)
+                handleApiResponse(response, ApiConstants.OperationType.REFERRER.ordinal)
             }
 
         } catch (exception: Exception) {

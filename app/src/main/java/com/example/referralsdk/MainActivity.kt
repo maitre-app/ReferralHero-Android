@@ -122,11 +122,7 @@ class MainActivity : AppCompatActivity(), RH.RHReferralCallBackListener, View.On
                 rh?.getRewards(this)
             }
             R.id.btnReferrer -> {
-                referralParams.osType = DeviceInfo(this).getOperatingSystem()
-                referralParams.device = DeviceInfo(this).getDeviceModel()
-                referralParams.ip_address = DeviceInfo(this).getIpAddress()
-                referralParams.screen_size = DeviceInfo(this).getIpAddress()
-                rh?.organicTrackReferral(this, referralParams)
+                rh?.getReferrer(this)
             }
         }
 

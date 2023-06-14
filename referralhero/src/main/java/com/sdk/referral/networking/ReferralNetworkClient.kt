@@ -4,6 +4,7 @@ import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.sdk.referral.model.*
+import com.sdk.referral.utils.DeviceInfo
 import com.sdk.referral.utils.PrefHelper
 import com.sdk.referral.utils.RHUtil
 import okhttp3.*
@@ -382,6 +383,10 @@ class ReferralNetworkClient {
         callback: (ApiResponse<ListSubscriberData>) -> Unit
     ) {
         val urlBuilder = (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()?.newBuilder()
+        urlBuilder?.addQueryParameter("os_type", DeviceInfo(context).getOperatingSystem())
+        urlBuilder?.addQueryParameter("device", DeviceInfo(context).getDeviceModel())
+        urlBuilder?.addQueryParameter("ip_address", DeviceInfo(context).getIpAddress())
+        urlBuilder?.addQueryParameter("screen_size", DeviceInfo(context).getDeviceScreenSize())
         val url = urlBuilder?.build()?.toString()
         val requestBuilder =
             Request.Builder().url(url!!).addHeader("Authorization", RHUtil.readRhKey(context))
@@ -404,6 +409,61 @@ class ReferralNetworkClient {
                 val parsedResponse: ApiResponse<ListSubscriberData> = Gson().fromJson(
                     responseString,
                     object : TypeToken<ApiResponse<ListSubscriberData>>() {}.type
+                )
+
+                if (response.isSuccessful) {
+                    // Handle the API call success
+                    callback.invoke(parsedResponse)
+                } else {
+                    // Handle the API call failure
+
+                    callback.invoke(
+                        ApiResponse(
+                            "error",
+                            parsedResponse.message,
+                            parsedResponse.code,
+                            null,
+                            null,
+                            0
+                        )
+                    )
+                }
+            }
+        })
+    }
+
+    fun serverRequestGetReferrerAsync(
+        context: Context,
+        endpoint: String,
+        callback: (ApiResponse<SubscriberData>) -> Unit
+    ) {
+        val urlBuilder = (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()?.newBuilder()
+        urlBuilder?.addQueryParameter("os_type", DeviceInfo(context).getOperatingSystem())
+        urlBuilder?.addQueryParameter("device", DeviceInfo(context).getDeviceModel())
+        urlBuilder?.addQueryParameter("ip_address", DeviceInfo(context).getIpAddress())
+        urlBuilder?.addQueryParameter("screen_size", DeviceInfo(context).getDeviceScreenSize())
+        val url = urlBuilder?.build()?.toString()
+        val requestBuilder =
+            Request.Builder().url(url!!).addHeader("Authorization", RHUtil.readRhKey(context))
+                .addHeader("Accept", "application/vnd.referralhero.v1")
+                .addHeader("Content-Type", "application/json").get()
+
+        val request = requestBuilder.build()
+
+        val client = OkHttpClient()
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                // Handle the API call failure
+                val errorResponse =
+                    ApiResponse<SubscriberData>("error", e.message, "0", null, null, 0)
+                callback.invoke(errorResponse)
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val responseString = response.body?.string()
+                val parsedResponse: ApiResponse<SubscriberData> = Gson().fromJson(
+                    responseString,
+                    object : TypeToken<ApiResponse<SubscriberData>>() {}.type
                 )
 
                 if (response.isSuccessful) {
