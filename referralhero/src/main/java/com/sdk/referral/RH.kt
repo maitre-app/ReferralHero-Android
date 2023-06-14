@@ -18,8 +18,6 @@ class RH(var context_: Context) {
     val deviceInfo: DeviceInfo
     private var referralNetworkClient: ReferralNetworkClient
     private var registerSubscriberCallback: RHReferralCallBackListener? = null
-    private var removeSubscriberCallback: RHReferralCallBackListener? = null
-    private var trackReferralCallback: RHReferralCallBackListener? = null
     private var myReferralCallback: RHMyReferralCallBackListener? = null
     private var leaderBoardReferralCallback: RHLeaderBoardReferralCallBackListener? = null
     private var rewardCallback: RHRewardCallBackListener? = null
@@ -84,7 +82,7 @@ class RH(var context_: Context) {
      * @param callback  -- callback call success and failure method
      */
     fun deleteSubscriber(callback: RHReferralCallBackListener?) {
-        removeSubscriberCallback = callback
+        registerSubscriberCallback = callback
         try {
             referralNetworkClient.serverRequestDeleteAsync(
                 context_,
@@ -109,7 +107,7 @@ class RH(var context_: Context) {
     fun updateSubscriber(
         callback: RHReferralCallBackListener?, referralParams: ReferralParams
     ) {
-        removeSubscriberCallback = callback
+        registerSubscriberCallback = callback
         try {
             referralNetworkClient.serverRequestPatchAsync(
                 context_,
@@ -138,7 +136,7 @@ class RH(var context_: Context) {
      * @param callback -- callback call success and failure method
      */
     fun trackReferral(callback: RHReferralCallBackListener?, referralParams: ReferralParams) {
-        trackReferralCallback = callback
+        registerSubscriberCallback = callback
 
         try {
             referralNetworkClient.serverRequestCallBackAsync(
@@ -160,7 +158,7 @@ class RH(var context_: Context) {
      * with any params like facebook, messenger, etc. We capture this as the share in our system.
      * **/
     fun captureShare(callback: RHReferralCallBackListener?, referralParams: ReferralParams) {
-        trackReferralCallback = callback
+        registerSubscriberCallback = callback
         try {
             referralNetworkClient.serverRequestCallBackAsync(
                 context_,
@@ -183,7 +181,7 @@ class RH(var context_: Context) {
      * RH.pendingReferral(callback,param) function and send the user information such as email address and name.
      * */
     fun pendingReferral(callback: RHReferralCallBackListener?, referralParams: ReferralParams) {
-        trackReferralCallback = callback
+        registerSubscriberCallback = callback
         try {
             referralNetworkClient.serverRequestCallBackAsync(
                 context_,
@@ -208,7 +206,7 @@ class RH(var context_: Context) {
     fun organicTrackReferral(
         callback: RHReferralCallBackListener?, referralParams: ReferralParams
     ) {
-        trackReferralCallback = callback
+        registerSubscriberCallback = callback
         try {
             referralNetworkClient.serverRequestCallBackAsync(
                 context_,
@@ -228,7 +226,7 @@ class RH(var context_: Context) {
     fun getReferrer(
         callback: RHReferralCallBackListener?, referralParams: ReferralParams
     ) {
-        trackReferralCallback = callback
+        registerSubscriberCallback = callback
         try {
             referralNetworkClient.serverRequestCallBackAsync(
                 context_,
@@ -252,7 +250,7 @@ class RH(var context_: Context) {
      * end of trial, etc)
      * */
     fun confirmReferral(callback: RHReferralCallBackListener?) {
-        trackReferralCallback = callback
+        registerSubscriberCallback = callback
         try {
             referralNetworkClient.serverRequestCallBackAsync(
                 context_,
