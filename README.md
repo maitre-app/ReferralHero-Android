@@ -64,10 +64,6 @@ dependencies {
 </details>
 
 ## Usage
-### Import
-```kotlin
-import com.github.maitre-app:ReferralHero-Android:0.0.1
-```
 
 ### Examples
 | APIs | App Examples |
