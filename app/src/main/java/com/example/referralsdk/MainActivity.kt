@@ -1,215 +1,161 @@
-package com.example.referralsdk;
+package com.example.referralsdk
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
-
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
-import com.google.gson.Gson;
-import com.sdk.referral.RH;
-import com.sdk.referral.model.ApiResponse;
-import com.sdk.referral.model.ListSubscriberData;
-import com.sdk.referral.model.RankingDataContent;
-import com.sdk.referral.model.ReferralParams;
-import com.sdk.referral.model.SubscriberData;
-import com.sdk.referral.receiver.RhReferrerReceiver;
-import com.sdk.referral.utils.DeviceInfo;
+import android.os.Bundle
+import android.util.Log
+import android.view.View
+import android.widget.Button
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import com.google.gson.Gson
+import com.sdk.referral.RH
+import com.sdk.referral.model.*
+import com.sdk.referral.utils.DeviceInfo
 
 
-public class MainActivity extends AppCompatActivity implements RH.RHReferralCallBackListener, View.OnClickListener, RH.RHMyReferralCallBackListener, RH.RHLeaderBoardReferralCallBackListener, RH.RHRewardCallBackListener {
+class MainActivity : AppCompatActivity(), RH.RHReferralCallBackListener, View.OnClickListener,
+    RH.RHMyReferralCallBackListener, RH.RHLeaderBoardReferralCallBackListener,
+    RH.RHRewardCallBackListener {
 
+    lateinit var btnGet: Button
+    lateinit var btnAdd: Button
+    lateinit var btnDelete: Button
+    lateinit var btnUpdate: Button
+    lateinit var btnTrack: Button
+    lateinit var btnOrgTrack: Button
+    lateinit var btnPending: Button
+    lateinit var btnConfirm: Button
+    lateinit var btnGetCampaign: Button
+    lateinit var btnGetReferral: Button
+    lateinit var btnCapture: Button
+    lateinit var btnReward: Button
+    lateinit var btnReffer: Button
+    lateinit var txtReponse: TextView
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        btnAdd = findViewById(R.id.btnAdd)
+        btnGet = findViewById(R.id.btnGet)
+        btnDelete = findViewById(R.id.btnDelete)
+        btnUpdate = findViewById(R.id.btnUpdate)
+        btnTrack = findViewById(R.id.btnTrack)
+        btnOrgTrack = findViewById(R.id.btnOrgTrack)
+        btnPending = findViewById(R.id.btnPending)
+        btnConfirm = findViewById(R.id.btnConfirm)
+        btnGetCampaign = findViewById(R.id.btnGetCampaign)
+        btnGetReferral = findViewById(R.id.btnGetReferral)
+        btnCapture = findViewById(R.id.btnCapture)
+        btnReward = findViewById(R.id.btnReward)
+        btnReffer = findViewById(R.id.btnReferrer)
+        txtReponse = findViewById(R.id.txtReponse)
 
-    private final BroadcastReceiver mUpdateReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Log.e("Referre Code", RH.getInstance().getPrefHelper().getAppStoreReferrer());
+        btnAdd.setOnClickListener(this)
+        btnGet.setOnClickListener(this)
+        btnTrack.setOnClickListener(this)
+        btnOrgTrack.setOnClickListener(this)
+        btnPending.setOnClickListener(this)
+        btnConfirm.setOnClickListener(this)
+        btnGetCampaign.setOnClickListener(this)
+        btnGetReferral.setOnClickListener(this)
+        btnCapture.setOnClickListener(this)
+        btnReward.setOnClickListener(this)
+        btnReffer.setOnClickListener(this)
+        btnDelete.setOnClickListener(this)
+        btnUpdate.setOnClickListener(this)
+    }
+
+    override fun onFailureCallback(response: ApiResponse<SubscriberData>?) {
+        Log.e("Response", Gson().toJson(response))
+        txtReponse.text = "Response : " + response?.status
+    }
+
+    override fun onSuccessCallback(response: ApiResponse<SubscriberData>?) {
+        Log.e("Response", Gson().toJson(response))
+        txtReponse.text = "Response : " + response?.message
+    }
+
+    override fun onClick(v: View) {
+        val referralParams = ReferralParams()
+        val rh = RH.instance
+
+        when (v.id) {
+            R.id.btnAdd -> {
+                referralParams.email = "dan@gmail.com"
+                referralParams.domain = "https://wongazoma.aistechnolabs.info/action"
+                referralParams.name = "pm"
+                referralParams.referrer = ""
+                referralParams.uuid = "MF4345c63888"
+                rh?.formSubmit(this, referralParams)
+                rh?.prefHelper?.rHReferralLink
+            }
+            R.id.btnGet -> RH.instance?.getSubscriber(this)
+            R.id.btnDelete -> RH.instance?.deleteSubscriber(this)
+            R.id.btnUpdate -> {
+                referralParams.name = "AndiDevOps"
+                rh?.updateSubscriber(this, referralParams)
+            }
+            R.id.btnTrack -> {
+                referralParams.email = "Jayden@gmail.com"
+                referralParams.name = "AndiDev"
+                rh?.trackReferral(this, referralParams)
+            }
+            R.id.btnCapture -> {
+                referralParams.social = "Whatsapp"
+                rh?.captureShare(this, referralParams)
+            }
+            R.id.btnGetReferral -> RH.instance?.getMyReferrals(this)
+            R.id.btnGetCampaign -> RH.instance?.getLeaderboard(this)
+            R.id.btnConfirm -> RH.instance?.confirmReferral(this)
+            R.id.btnPending -> {
+                referralParams.email = "Jayden@gmail.com"
+                referralParams.name = "AndiDev"
+                referralParams.ip_address = DeviceInfo(this).getIpAddress()
+                referralParams.screen_size = DeviceInfo(this).getDeviceScreenSize()
+                referralParams.device = DeviceInfo(this).getOperatingSystem()
+                referralParams.referrer = ""
+                rh?.pendingReferral(this, referralParams)
+            }
+            R.id.btnOrgTrack -> {
+                referralParams.email = "Jayden@gmail.com"
+                rh?.organicTrackReferral(this, referralParams)
+            }
+            R.id.btnReward -> {
+                rh?.getRewards(this)
+            }
+            R.id.btnReferrer -> {
+                referralParams.osType = DeviceInfo(this).getOperatingSystem()
+                referralParams.device = DeviceInfo(this).getDeviceModel()
+                referralParams.ip_address = DeviceInfo(this).getIpAddress()
+                referralParams.screen_size = DeviceInfo(this).getIpAddress()
+                rh?.organicTrackReferral(this, referralParams)
+            }
         }
-    };
-    TextView txtReponse;
-    Button btnAdd, btnGet, btnReward, btnReffer, btnShareLink, btnDelete, btnUpdate, btnTrack, btnOrgTrack, btnPending, btnConfirm, btnGetCampaign, btnGetReferral, btnCapture;
-    DeviceInfo deviceInfo;
-    RH rh;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        deviceInfo = new DeviceInfo(this);
-        rh = RH.getInstance();
-
-        btnAdd = findViewById(R.id.btnAdd);
-        btnGet = findViewById(R.id.btnGet);
-        btnDelete = findViewById(R.id.btnDelete);
-        btnShareLink = findViewById(R.id.btnVisitor);
-        btnUpdate = findViewById(R.id.btnUpdate);
-        btnTrack = findViewById(R.id.btnTrack);
-        btnOrgTrack = findViewById(R.id.btnOrgTrack);
-        btnPending = findViewById(R.id.btnPending);
-        btnConfirm = findViewById(R.id.btnConfirm);
-        btnGetCampaign = findViewById(R.id.btnGetCampaign);
-        btnGetReferral = findViewById(R.id.btnGetReferral);
-        btnCapture = findViewById(R.id.btnCapture);
-        btnReward = findViewById(R.id.btnReward);
-        btnReffer = findViewById(R.id.btnReferrer);
-        txtReponse = findViewById(R.id.txtReponse);
-
-        btnAdd.setOnClickListener(this);
-        btnGet.setOnClickListener(this);
-        btnTrack.setOnClickListener(this);
-        btnOrgTrack.setOnClickListener(this);
-        btnPending.setOnClickListener(this);
-        btnConfirm.setOnClickListener(this);
-        btnGetCampaign.setOnClickListener(this);
-        btnGetReferral.setOnClickListener(this);
-        btnCapture.setOnClickListener(this);
-        btnDelete.setOnClickListener(this);
-        btnUpdate.setOnClickListener(this);
-        btnReffer.setOnClickListener(this);
-        btnReward.setOnClickListener(this);
-        btnShareLink.setOnClickListener(this);
 
     }
 
-    @Override
-    public void onSuccessCallback(ApiResponse response) {
-        txtReponse.setText("Response : " + new Gson().toJson(response));
-        Log.e("onSuccessCallback", new Gson().toJson(response));
+    override fun onMyReferralSuccessCallback(response: ApiResponse<ListSubscriberData>?) {
+        Log.e("onMyReferralSuccess", Gson().toJson(response))
     }
 
-    @Override
-    public void onFailureCallback(ApiResponse response) {
-        txtReponse.setText("Response : " + new Gson().toJson(response));
-        Log.e("onFailureCallback", new Gson().toJson(response));
+    override fun onMyReferralFailureCallback(response: ApiResponse<ListSubscriberData>?) {
+        Log.e("onMyReferralSuccess", Gson().toJson(response))
     }
 
-    @Override
-    public void onClick(View v) {
-        ReferralParams referralParams = new ReferralParams();
-        switch (v.getId()) {
-            case R.id.btnAdd:
-                referralParams.setEmail("Jayden2413@gmail.com");
-                referralParams.setDomain("https://wongazoma.aistechnolabs.info/action");
-                referralParams.setName("AndiDe4v");
-                referralParams.setReferrer("");
-                referralParams.setUuid("MF4345c63888");
-                referralParams.setDevice("Android");
-                referralParams.setOsType(deviceInfo.getOperatingSystem());
-                rh.formSubmit(new RH.RHReferralCallBackListener() {
-                    @Override
-                    public void onSuccessCallback(@Nullable ApiResponse<SubscriberData> response) {
-
-                    }
-
-                    @Override
-                    public void onFailureCallback(@Nullable ApiResponse<SubscriberData> response) {
-
-                    }
-                }, referralParams);
-                rh.getPrefHelper().getRHReferralLink();
-                break;
-
-            case R.id.btnGet:
-                rh.getSubscriber(this);
-                break;
-            case R.id.btnDelete:
-                rh.deleteSubscriber(this);
-                break;
-            case R.id.btnUpdate:
-                referralParams.setName("AndiDevOps");
-                rh.updateSubscriber(this, referralParams);
-                break;
-            case R.id.btnTrack:
-                referralParams.setEmail("Jayden@gmail.com");
-                referralParams.setName("AndiDev");
-                rh.trackReferral(this, referralParams);
-                break;
-            case R.id.btnCapture:
-                referralParams.setSocial("Whatsapp");
-                rh.captureShare(this, referralParams);
-                break;
-
-            case R.id.btnGetReferral:
-                rh.getMyReferrals(this);
-                break;
-            case R.id.btnGetCampaign:
-                rh.getLeaderboard(this);
-                break;
-            case R.id.btnPending:
-                referralParams.setEmail("Jayden@gmail.com");
-                referralParams.setName("AndiDev");
-                rh.pendingReferral(this, referralParams);
-                break;
-            case R.id.btnOrgTrack:
-                referralParams.setEmail("Jayden@gmail.com");
-                referralParams.setName("AndiDev");
-                rh.organicTrackReferral(this, referralParams);
-                break;
-            case R.id.btnConfirm:
-                rh.confirmReferral(this);
-                break;
-            case R.id.btnReward:
-                rh.getRewards(this);
-                break;
-            case R.id.btnReferrer:
-                referralParams.setOsType(rh.getDeviceInfo().getOperatingSystem());
-                referralParams.setDevice(rh.getDeviceInfo().getDeviceModel());
-                referralParams.setIp_address(rh.getDeviceInfo().getIpAddress());
-                referralParams.setScreen_size(rh.getDeviceInfo().getDeviceScreenSize());
-                //rh.getReferrer(this,referralParams);
-                break;
-
-        }
+    override fun onLeaderBoardReferralSuccessCallback(response: ApiResponse<RankingDataContent>?) {
+        Log.e("onLeaderBoardSuccess", Gson().toJson(response))
     }
 
-    @Override
-    public void onMyReferralSuccessCallback(@Nullable ApiResponse<ListSubscriberData> response) {
-        Log.e("onMyReferralSuccess", new Gson().toJson(response));
+    override fun onLeaderBoardReferralFailureCallback(response: ApiResponse<RankingDataContent>?) {
+        Log.e("onLeaderBoardSuccess", Gson().toJson(response))
     }
 
-    @Override
-    public void onMyReferralFailureCallback(@Nullable ApiResponse<ListSubscriberData> response) {
-        Log.e("onMyReferralSuccess", new Gson().toJson(response));
+    override fun onRewardSuccessCallback(response: ApiResponse<ListSubscriberData>?) {
+        Log.e("onRewardSuccess", Gson().toJson(response))
+    }
+
+    override fun onRewardFailureCallback(response: ApiResponse<ListSubscriberData>?) {
+        Log.e("onRewardSuccess", Gson().toJson(response))
     }
 
 
-    @Override
-    protected void onPause() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mUpdateReceiver);
-        super.onPause();
-    }
-
-    @Override
-    protected void onResume() {
-        LocalBroadcastManager.getInstance(this).registerReceiver(mUpdateReceiver, new IntentFilter(new RhReferrerReceiver().getACTION_UPDATE_DATA()));
-        super.onResume();
-    }
-
-    @Override
-    public void onLeaderBoardReferralSuccessCallback(@Nullable ApiResponse<RankingDataContent> response) {
-        Log.e("onLeaderBoardSuccess", new Gson().toJson(response));
-    }
-
-    @Override
-    public void onLeaderBoardReferralFailureCallback(@Nullable ApiResponse<RankingDataContent> response) {
-        Log.e("onLeaderBoardSuccess", new Gson().toJson(response));
-    }
-
-    @Override
-    public void onRewardSuccessCallback(@Nullable ApiResponse<ListSubscriberData> response) {
-        Log.e("onLeaderBoardSuccess", new Gson().toJson(response));
-    }
-
-    @Override
-    public void onRewardFailureCallback(@Nullable ApiResponse<ListSubscriberData> response) {
-        Log.e("onLeaderBoardSuccess", new Gson().toJson(response));
-    }
 }
+

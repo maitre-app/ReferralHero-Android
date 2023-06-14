@@ -1,14 +1,11 @@
-package com.example.referralsdk;
+package com.example.referralsdk
 
-import android.app.Application;
+import android.app.Application
+import com.sdk.referral.RH.Companion.getAutoInstance
 
-import com.sdk.referral.RH;
-
-public class MyApp extends Application {
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        RH.getAutoInstance(this);
+class MyApp : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        getAutoInstance(this)
     }
 }

@@ -6,14 +6,11 @@ import com.google.gson.reflect.TypeToken
 import com.sdk.referral.model.*
 import com.sdk.referral.utils.PrefHelper
 import com.sdk.referral.utils.RHUtil
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.IOException
 
 class ReferralNetworkClient {
     private val client: OkHttpClient = OkHttpClient()
@@ -28,10 +25,11 @@ class ReferralNetworkClient {
     - Used `withContext` and `Dispatchers.IO` for performing the network request asynchronously.
     - Handled the response based on the HTTP status code, returning the parsed response if code is 200, otherwise returning a new `ApiResponse` object with the error details.
      * */
-    suspend fun serverRequestGetAsync(
-        context: Context, endpoint: String
-    ): ApiResponse<SubscriberData> {
-
+    fun serverRequestGetAsync(
+        context: Context,
+        endpoint: String,
+        callback: (ApiResponse<SubscriberData>) -> Unit
+    ) {
         val urlBuilder = (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()?.newBuilder()
         val url = urlBuilder?.build()?.toString()
         val requestBuilder =
@@ -40,20 +38,43 @@ class ReferralNetworkClient {
                 .addHeader("Content-Type", "application/json").get()
 
         val request = requestBuilder.build()
-        return withContext(Dispatchers.IO) {
-            val response = client.newCall(request).execute()
-            val responseString = response.body?.string()
-            val parsedResponse: ApiResponse<SubscriberData> = gson.fromJson(
-                responseString,
-                object : TypeToken<ApiResponse<SubscriberData>>() {}.type
-            )
-            if (response.code == 200) {
-                parsedResponse
-            } else {
-                ApiResponse("error", parsedResponse.message, parsedResponse.code, null, null, 0)
+
+        val client = OkHttpClient()
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                // Handle the API call failure
+                val errorResponse =
+                    ApiResponse<SubscriberData>("error", e.message, "0", null, null, 0)
+                callback.invoke(errorResponse)
             }
-        }
+
+            override fun onResponse(call: Call, response: Response) {
+                val responseString = response.body?.string()
+                val parsedResponse: ApiResponse<SubscriberData> = Gson().fromJson(
+                    responseString,
+                    object : TypeToken<ApiResponse<SubscriberData>>() {}.type
+                )
+
+                if (response.isSuccessful) {
+                    // Handle the API call success
+                    callback.invoke(parsedResponse)
+                } else {
+                    // Handle the API call failure
+                    callback.invoke(
+                        ApiResponse(
+                            "error",
+                            parsedResponse.message,
+                            parsedResponse.code,
+                            null,
+                            null,
+                            0
+                        )
+                    )
+                }
+            }
+        })
     }
+
 
     /**
     - Extracted the creation of the JSON request body into a separate variable for improved readability.
@@ -64,10 +85,12 @@ class ReferralNetworkClient {
     - Handled the response based on the HTTP status code, returning the parsed response if code is 200, otherwise returning a new `ApiResponse` object with the error details.
      * ***/
 
-    suspend fun serverRequestCallBackAsync(
-        context: Context, endpoint: String, referralParams: ReferralParams
-    ): ApiResponse<SubscriberData> {
-
+    fun serverRequestCallBackAsync(
+        context: Context,
+        endpoint: String,
+        referralParams: ReferralParams,
+        callback: (ApiResponse<SubscriberData>) -> Unit
+    ) {
         val jsonMediaType = "application/json".toMediaTypeOrNull()
         val requestBody: RequestBody = Gson().toJson(referralParams).toRequestBody(jsonMediaType)
         val urlBuilder = (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()?.newBuilder()
@@ -78,20 +101,41 @@ class ReferralNetworkClient {
                 .addHeader("Accept", "application/vnd.referralhero.v1").post(requestBody)
 
         val request = requestBuilder.build()
-        return withContext(Dispatchers.IO) {
-            val response = client.newCall(request).execute()
-            val responseString = response.body?.string()
-            val parsedResponse: ApiResponse<SubscriberData> = gson.fromJson(
-                responseString,
-                object : TypeToken<ApiResponse<SubscriberData>>() {}.type
-            )
-            if (response.code == 200) {
-                parsedResponse
-            } else {
-                ApiResponse("error", parsedResponse.message, parsedResponse.code, null, null, 0)
+
+        val client = OkHttpClient()
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                // Handle the API call failure
+                val errorResponse =
+                    ApiResponse<SubscriberData>("error", e.message, "0", null, null, 0)
+                callback.invoke(errorResponse)
             }
 
-        }
+            override fun onResponse(call: Call, response: Response) {
+                val responseString = response.body?.string()
+                val parsedResponse: ApiResponse<SubscriberData> = Gson().fromJson(
+                    responseString,
+                    object : TypeToken<ApiResponse<SubscriberData>>() {}.type
+                )
+
+                if (response.isSuccessful) {
+                    // Handle the API call success
+                    callback.invoke(parsedResponse)
+                } else {
+                    // Handle the API call failure
+                    callback.invoke(
+                        ApiResponse(
+                            "error",
+                            parsedResponse.message,
+                            parsedResponse.code,
+                            null,
+                            null,
+                            0
+                        )
+                    )
+                }
+            }
+        })
     }
 
     /**
@@ -103,10 +147,11 @@ class ReferralNetworkClient {
     - Used `withContext` and `Dispatchers.IO` for performing the network request asynchronously.
     - Handled the response based on the HTTP status code, returning the parsed response if code is 200, otherwise returning a new `ApiResponse` object with the error details.
      * ***/
-    suspend fun serverRequestDeleteAsync(
-        context: Context, endpoint: String
-    ): ApiResponse<SubscriberData> {
-
+    fun serverRequestDeleteAsync(
+        context: Context,
+        endpoint: String,
+        callback: (ApiResponse<SubscriberData>) -> Unit
+    ) {
         val urlBuilder = (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()?.newBuilder()
         val url = urlBuilder?.build()?.toString()
 
@@ -116,19 +161,40 @@ class ReferralNetworkClient {
                 .addHeader("Content-Type", "application/json").delete()
 
         val request = requestBuilder.build()
-        return withContext(Dispatchers.IO) {
-            val response = client.newCall(request).execute()
-            val responseString = response.body?.string()
-            val parsedResponse: ApiResponse<SubscriberData> = gson.fromJson(
-                responseString,
-                object : TypeToken<ApiResponse<SubscriberData>>() {}.type
-            )
-            if (response.code == 200) {
-                parsedResponse
-            } else {
-                ApiResponse("error", parsedResponse.message, parsedResponse.code, null, null, 0)
+
+        val client = OkHttpClient()
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                // Handle the API call failure
+                val errorResponse =
+                    ApiResponse<SubscriberData>("error", e.message, "0", null, null, 0)
+                callback.invoke(errorResponse)
             }
-        }
+
+            override fun onResponse(call: Call, response: Response) {
+                val responseString = response.body?.string()
+                val parsedResponse: ApiResponse<SubscriberData> = Gson().fromJson(
+                    responseString,
+                    object : TypeToken<ApiResponse<SubscriberData>>() {}.type
+                )
+
+                if (response.isSuccessful) {
+                    // Handle the API call success
+                    callback.invoke(parsedResponse)
+                } else {
+                    callback.invoke(
+                        ApiResponse(
+                            "error",
+                            parsedResponse.message,
+                            parsedResponse.code,
+                            null,
+                            null,
+                            0
+                        )
+                    )
+                }
+            }
+        })
     }
 
     /**
@@ -140,10 +206,12 @@ class ReferralNetworkClient {
     - Used `withContext` and `Dispatchers.IO` for performing the network request asynchronously.
     - Handled the response based on the HTTP status code, returning the parsed response if the code is 200, otherwise returning a new `ApiResponse` object with the error details.
      * ***/
-    suspend fun serverRequestPatchAsync(
-        context: Context, endpoint: String, referralParams: ReferralParams
-    ): ApiResponse<SubscriberData> {
-
+    fun serverRequestPatchAsync(
+        context: Context,
+        endpoint: String,
+        referralParams: ReferralParams,
+        callback: (ApiResponse<SubscriberData>) -> Unit
+    ) {
         val jsonMediaType = "application/json".toMediaTypeOrNull()
         val requestBody: RequestBody = Gson().toJson(referralParams).toRequestBody(jsonMediaType)
         val urlBuilder = (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()?.newBuilder()
@@ -154,20 +222,41 @@ class ReferralNetworkClient {
                 .addHeader("Accept", "application/vnd.referralhero.v1").patch(requestBody)
 
         val request = requestBuilder.build()
-        return withContext(Dispatchers.IO) {
-            val response = client.newCall(request).execute()
-            val responseString = response.body?.string()
-            val parsedResponse: ApiResponse<SubscriberData> = gson.fromJson(
-                responseString,
-                object : TypeToken<ApiResponse<SubscriberData>>() {}.type
-            )
-            if (response.code == 200) {
-                parsedResponse
-            } else {
-                ApiResponse("error", parsedResponse.message, parsedResponse.code, null, null, 0)
+
+        val client = OkHttpClient()
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                // Handle the API call failure
+                val errorResponse =
+                    ApiResponse<SubscriberData>("error", e.message, "0", null, null, 0)
+                callback.invoke(errorResponse)
             }
 
-        }
+            override fun onResponse(call: Call, response: Response) {
+                val responseString = response.body?.string()
+                val parsedResponse: ApiResponse<SubscriberData> = Gson().fromJson(
+                    responseString,
+                    object : TypeToken<ApiResponse<SubscriberData>>() {}.type
+                )
+
+                if (response.isSuccessful) {
+                    // Handle the API call success
+                    callback.invoke(parsedResponse)
+                } else {
+                    // Handle the API call failure
+                    callback.invoke(
+                        ApiResponse(
+                            "error",
+                            parsedResponse.message,
+                            parsedResponse.code,
+                            null,
+                            null,
+                            0
+                        )
+                    )
+                }
+            }
+        })
     }
 
     /**
@@ -178,10 +267,11 @@ class ReferralNetworkClient {
     - Used `withContext` and `Dispatchers.IO` for performing the network request asynchronously.
     - Handled the response based on the HTTP status code, returning the parsed response if code is 200, otherwise returning a new `ApiResponse` object with the error details.
      * */
-    suspend fun serverRequestGetMyReferralAsync(
-        context: Context, endpoint: String
-    ): ApiResponse<ListSubscriberData> {
-
+    fun serverRequestGetMyReferralAsync(
+        context: Context,
+        endpoint: String,
+        callback: (ApiResponse<ListSubscriberData>) -> Unit
+    ) {
         val urlBuilder = (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()?.newBuilder()
         val url = urlBuilder?.build()?.toString()
         val requestBuilder =
@@ -190,19 +280,41 @@ class ReferralNetworkClient {
                 .addHeader("Content-Type", "application/json").get()
 
         val request = requestBuilder.build()
-        return withContext(Dispatchers.IO) {
-            val response = client.newCall(request).execute()
-            val responseString = response.body?.string()
-            val parsedResponse: ApiResponse<ListSubscriberData> = gson.fromJson(
-                responseString,
-                object : TypeToken<ApiResponse<ListSubscriberData>>() {}.type
-            )
-            if (response.code == 200) {
-                parsedResponse
-            } else {
-                ApiResponse("error", parsedResponse.message, parsedResponse.code, null, null, 0)
+
+        val client = OkHttpClient()
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                // Handle the API call failure
+                val errorResponse =
+                    ApiResponse<ListSubscriberData>("error", e.message, "0", null, null, 0)
+                callback.invoke(errorResponse)
             }
-        }
+
+            override fun onResponse(call: Call, response: Response) {
+                val responseString = response.body?.string()
+                val parsedResponse: ApiResponse<ListSubscriberData> = Gson().fromJson(
+                    responseString,
+                    object : TypeToken<ApiResponse<ListSubscriberData>>() {}.type
+                )
+
+                if (response.isSuccessful) {
+                    // Handle the API call success
+                    callback.invoke(parsedResponse)
+                } else {
+                    // Handle the API call failure
+                    callback.invoke(
+                        ApiResponse(
+                            "error",
+                            parsedResponse.message,
+                            parsedResponse.code,
+                            null,
+                            null,
+                            0
+                        )
+                    )
+                }
+            }
+        })
     }
 
     /**
@@ -213,10 +325,11 @@ class ReferralNetworkClient {
     - Used `withContext` and `Dispatchers.IO` for performing the network request asynchronously.
     - Handled the response based on the HTTP status code, returning the parsed response if code is 200, otherwise returning a new `ApiResponse` object with the error details.
      * */
-    suspend fun <T> serverRequestGetLeaderboardAsync(
-        context: Context, endpoint: String
-    ): ApiResponse<RankingDataContent> {
-
+    fun serverRequestGetLeaderboardAsync(
+        context: Context,
+        endpoint: String,
+        callback: (ApiResponse<RankingDataContent>) -> Unit
+    ) {
         val urlBuilder = (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()?.newBuilder()
         val url = urlBuilder?.build()?.toString()
         val requestBuilder =
@@ -225,25 +338,49 @@ class ReferralNetworkClient {
                 .addHeader("Content-Type", "application/json").get()
 
         val request = requestBuilder.build()
-        return withContext(Dispatchers.IO) {
-            val response = client.newCall(request).execute()
-            val responseString = response.body?.string()
-            val parsedResponse: ApiResponse<RankingDataContent> = gson.fromJson(
-                responseString,
-                object : TypeToken<ApiResponse<RankingDataContent>>() {}.type
-            )
-            if (response.code == 200) {
-                parsedResponse
-            } else {
-                ApiResponse("error", parsedResponse.message, parsedResponse.code, null, null, 0)
+
+        val client = OkHttpClient()
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                // Handle the API call failure
+                val errorResponse =
+                    ApiResponse<RankingDataContent>("error", e.message, "0", null, null, 0)
+                callback.invoke(errorResponse)
             }
-        }
+
+            override fun onResponse(call: Call, response: Response) {
+                val responseString = response.body?.string()
+                val parsedResponse: ApiResponse<RankingDataContent> = Gson().fromJson(
+                    responseString,
+                    object : TypeToken<ApiResponse<RankingDataContent>>() {}.type
+                )
+
+                if (response.isSuccessful) {
+                    // Handle the API call success
+                    callback.invoke(parsedResponse)
+                } else {
+                    // Handle the API call failure
+
+                    callback.invoke(
+                        ApiResponse(
+                            "error",
+                            parsedResponse.message,
+                            parsedResponse.code,
+                            null,
+                            null,
+                            0
+                        )
+                    )
+                }
+            }
+        })
     }
 
-    suspend fun serverRequestRewardAsync(
-        context: Context, endpoint: String
-    ): ApiResponse<ListSubscriberData> {
-
+    fun serverRequestRewardAsync(
+        context: Context,
+        endpoint: String,
+        callback: (ApiResponse<ListSubscriberData>) -> Unit
+    ) {
         val urlBuilder = (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()?.newBuilder()
         val url = urlBuilder?.build()?.toString()
         val requestBuilder =
@@ -252,19 +389,43 @@ class ReferralNetworkClient {
                 .addHeader("Content-Type", "application/json").get()
 
         val request = requestBuilder.build()
-        return withContext(Dispatchers.IO) {
-            val response = client.newCall(request).execute()
-            val responseString = response.body?.string()
-            val parsedResponse: ApiResponse<ListSubscriberData> = gson.fromJson(
-                responseString,
-                object : TypeToken<ApiResponse<ListSubscriberData>>() {}.type
-            )
-            if (response.code == 200) {
-                parsedResponse
-            } else {
-                ApiResponse("error", parsedResponse.message, parsedResponse.code, null, null, 0)
+
+        val client = OkHttpClient()
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                // Handle the API call failure
+                val errorResponse =
+                    ApiResponse<ListSubscriberData>("error", e.message, "0", null, null, 0)
+                callback.invoke(errorResponse)
             }
-        }
+
+            override fun onResponse(call: Call, response: Response) {
+                val responseString = response.body?.string()
+                val parsedResponse: ApiResponse<ListSubscriberData> = Gson().fromJson(
+                    responseString,
+                    object : TypeToken<ApiResponse<ListSubscriberData>>() {}.type
+                )
+
+                if (response.isSuccessful) {
+                    // Handle the API call success
+                    callback.invoke(parsedResponse)
+                } else {
+                    // Handle the API call failure
+
+                    callback.invoke(
+                        ApiResponse(
+                            "error",
+                            parsedResponse.message,
+                            parsedResponse.code,
+                            null,
+                            null,
+                            0
+                        )
+                    )
+                }
+            }
+        })
     }
+
 
 }
