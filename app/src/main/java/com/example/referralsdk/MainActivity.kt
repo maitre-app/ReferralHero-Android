@@ -69,8 +69,8 @@ class MainActivity : AppCompatActivity(), RH.RHReferralCallBackListener, View.On
     }
 
     override fun onSuccessCallback(response: ApiResponse<SubscriberData>?) {
-        Log.e("Response", Gson().toJson(response))
-        txtReponse.text = "Response : " + response?.message
+        Log.e("onSuccessCallback", Gson().toJson(response?.data))
+        txtReponse.text = "Response : " + response?.status
     }
 
     override fun onClick(v: View) {
@@ -79,11 +79,15 @@ class MainActivity : AppCompatActivity(), RH.RHReferralCallBackListener, View.On
 
         when (v.id) {
             R.id.btnAdd -> {
-                referralParams.email = "dan@gmail.com"
+                referralParams.email = "jayden@aistechnolabs.org"
                 referralParams.domain = "https://wongazoma.aistechnolabs.info/action"
-                referralParams.name = "pm"
+                referralParams.name = "Jayden"
                 referralParams.referrer = ""
-                referralParams.uuid = "MF4345c63888"
+                referralParams.uuid = "MFdea3239f91"
+                // referralParams.ip_address = rh?.deviceInfo?.getIpAddress()
+                referralParams.device = rh?.deviceInfo?.getDeviceModel()
+                referralParams.os_type = rh?.deviceInfo?.getOperatingSystem()
+                referralParams.screen_size = rh?.deviceInfo?.getDeviceScreenSize()
                 rh?.formSubmit(this, referralParams)
                 rh?.prefHelper?.rHReferralLink
             }

@@ -18,9 +18,7 @@ class ReferralParams {
     var domain: String? = null
     var phoneNumber: String? = null
     var cryptoWalletAddress: String? = null
-    var ipAddress: String? = null
-    var osType: String? = null
-    var screenSize: String? = null
+    var os_type: String? = null
     var social: String? = null
     var ip_address: String? = null
     var screen_size: String? = null
