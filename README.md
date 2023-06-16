@@ -68,4 +68,5 @@ dependencies {
 ### Examples
 | APIs | App Examples |
 | --- | --- |
-| All AP is demo | [MainScreen.kt](https://github.com/maitre-app/ReferralHero-Android/blob/master/app/src/main/java/com/example/referralsdk/MainActivity.kt) - Show all API usages|
+| All API is demo | [MainScreen.kt](https://github.com/maitre-app/ReferralHero-Android/blob/master/app/src/main/java/com/example/referralsdk/MainActivity.kt) - Show all API usages|
+| SDK REST API  | [Checkout SDK  API ](https://support.referralhero.com/integrate/rest-api) - Show all API usages|
