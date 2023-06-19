@@ -49,7 +49,7 @@ dependencyResolutionManagement {
 
 ```gradle
 dependencies {
-    implementation "com.github.maitre-app:ReferralHero-Android:0.0.2"
+    implementation "com.github.maitre-app:ReferralHero-Android:0.0.4"
 }
 ```
 </details>
@@ -58,7 +58,7 @@ dependencies {
 
 ```gradle
 dependencies {
-    implementation("com.github.maitre-app:ReferralHero-Android:0.0.2")
+    implementation("com.github.maitre-app:ReferralHero-Android:0.0.4")
 }
 ```
 </details>
