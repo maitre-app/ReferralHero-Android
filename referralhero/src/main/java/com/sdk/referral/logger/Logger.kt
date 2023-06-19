@@ -1,11 +1,10 @@
 package com.sdk.referral.logger
 
 import android.util.Log
-import com.sdk.referral.utils.RHUtil.formatString
 import java.util.*
 
 class Logger : ILogger {
-    var LOGTAG = "ReferralHero"
+    var LOGTAG = "ReferralHero SDK:"
     private var logLevel: LogLevel? = null
     private var logLevelLocked = false
     private var isProductionEnvironment = false
@@ -147,5 +146,9 @@ class Logger : ILogger {
 
     companion object {
         private const val formatErrorMessage = "Error formating log message: %s, with params: %s"
+    }
+
+    fun formatString(format: String?, vararg args: Any?): String? {
+        return java.lang.String.format(Locale.US, format, args)
     }
 }

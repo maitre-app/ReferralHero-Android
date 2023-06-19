@@ -4,11 +4,12 @@ import android.content.Context
 import android.text.TextUtils
 import com.sdk.referral.logger.Logger
 import com.sdk.referral.model.*
-import com.sdk.referral.networking.ApiConstants
 import com.sdk.referral.networking.ReferralNetworkClient
 import com.sdk.referral.utils.DeviceInfo
 import com.sdk.referral.utils.PrefHelper
-import com.sdk.referral.utils.RHUtil
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /**
  * Created by Jaspalsinh Gohil(Jayden) on 02-05-2023.
@@ -39,18 +40,34 @@ class RH(var context_: Context) {
      */
     fun formSubmit(callback: RHReferralCallBackListener?, referralParams: ReferralParams) {
         registerSubscriberCallback = callback
+        val mainCoroutineScope = CoroutineScope(Dispatchers.Main)
 
         try {
-            referralNetworkClient.serverRequestCallBackAsync(
-                context_, "${prefHelper.rhCampaignID}/subscribers/", referralParams
-            ) { response ->
-                // Handle the response in the callback
-                handleApiResponse(response, ApiConstants.OperationType.ADD.ordinal)
-            }
+            mainCoroutineScope.launch {
+                try {
+                    val response = referralNetworkClient.serverRequestCallBackAsync(
+                        context_, "${prefHelper.rhCampaignID}/subscribers/", referralParams
+                    )
+                    if (response.status == "ok") {
+                        response.data?.let {
+                            prefHelper.rHReferralLink = it.referral_link
+                            prefHelper.appStoreReferrer = it.universal_link
+                            prefHelper.rHSubscriberID = it.id
+                        }
+                        registerSubscriberCallback?.onSuccessCallback(response)
+                    } else {
+                        prefHelper.rHReferralLink = PrefHelper.NO_STRING_VALUE
+                        registerSubscriberCallback?.onFailureCallback(response)
+                    }
 
+                } catch (exception: Exception) {
+                    logger?.error(exception.toString())
+                }
+            }
         } catch (exception: Exception) {
             logger?.error(exception.toString())
         }
+
 
     }
 
@@ -61,19 +78,28 @@ class RH(var context_: Context) {
      */
     fun getSubscriber(callback: RHReferralCallBackListener?) {
         registerSubscriberCallback = callback
+        val mainCoroutineScope = CoroutineScope(Dispatchers.Main)
         try {
-            referralNetworkClient.serverRequestGetAsync(
-                context_,
-                "${RHUtil.readRhCampaignID(context_)}/subscribers/${prefHelper.rHSubscriberID}"
-            ) { response ->
-                // Handle the response in the callback
-                handleApiResponse(response, ApiConstants.OperationType.GET.ordinal)
-            }
+            mainCoroutineScope.launch {
+                try {
+                    val response = referralNetworkClient.serverRequestGetAsync(
+                        context_,
+                        "${prefHelper.rhCampaignID}/subscribers/${prefHelper.rHSubscriberID}"
+                    )
+                    if (response.status == "ok") {
+                        registerSubscriberCallback?.onSuccessCallback(response)
+                    } else {
+                        registerSubscriberCallback?.onFailureCallback(response)
+                    }
 
+                } catch (exception: Exception) {
+                    logger?.error(exception.toString())
+                }
+
+            }
         } catch (exception: Exception) {
             logger?.error(exception.toString())
         }
-
     }
 
     /***
@@ -83,20 +109,33 @@ class RH(var context_: Context) {
      */
     fun deleteSubscriber(callback: RHReferralCallBackListener?) {
         registerSubscriberCallback = callback
+        val mainCoroutineScope = CoroutineScope(Dispatchers.Main)
         try {
-            referralNetworkClient.serverRequestDeleteAsync(
-                context_,
-                "${RHUtil.readRhCampaignID(context_)}/subscribers/${prefHelper.rHSubscriberID}"
-            ) { response ->
-                // Handle the response in the callback
-                handleApiResponse(response, ApiConstants.OperationType.GET.ordinal)
-            }
+            mainCoroutineScope.launch {
+                try {
+                    val response = referralNetworkClient.serverRequestDeleteAsync(
+                        context_,
+                        "${prefHelper.rhCampaignID}/subscribers/${prefHelper.rHSubscriberID}"
+                    )
+                    if (response.status == "ok") {
+                        prefHelper.clearPrefOnBranchKeyChange()
+                        registerSubscriberCallback?.onSuccessCallback(response)
+                    } else {
+                        registerSubscriberCallback?.onFailureCallback(response)
+                    }
 
+                } catch (exception: Exception) {
+                    logger?.error(exception.toString())
+                }
+            }
         } catch (exception: Exception) {
             logger?.error(exception.toString())
         }
 
+    }
 
+    fun clearSDKData() {
+        prefHelper.clearPrefOnBranchKeyChange()
     }
 
     /***
@@ -108,20 +147,28 @@ class RH(var context_: Context) {
         callback: RHReferralCallBackListener?, referralParams: ReferralParams
     ) {
         registerSubscriberCallback = callback
+        val mainCoroutineScope = CoroutineScope(Dispatchers.Main)
         try {
-            referralNetworkClient.serverRequestPatchAsync(
-                context_,
-                "${RHUtil.readRhCampaignID(context_)}/subscribers/${prefHelper.rHSubscriberID}",
-                referralParams
-            ) { response ->
-                // Handle the response in the callback
-                handleApiResponse(response, ApiConstants.OperationType.GET.ordinal)
-            }
+            mainCoroutineScope.launch {
+                try {
+                    val response = referralNetworkClient.serverRequestPatchAsync(
+                        context_,
+                        "${prefHelper.rhCampaignID}/subscribers/${prefHelper.rHSubscriberID}",
+                        referralParams
+                    )
+                    if (response.status == "ok") {
+                        registerSubscriberCallback?.onSuccessCallback(response)
+                    } else {
+                        registerSubscriberCallback?.onFailureCallback(response)
+                    }
 
+                } catch (exception: Exception) {
+                    logger?.error(exception.toString())
+                }
+            }
         } catch (exception: Exception) {
             logger?.error(exception.toString())
         }
-
     }
 
     /***
@@ -137,20 +184,29 @@ class RH(var context_: Context) {
      */
     fun trackReferral(callback: RHReferralCallBackListener?, referralParams: ReferralParams) {
         registerSubscriberCallback = callback
-
+        val mainCoroutineScope = CoroutineScope(Dispatchers.Main)
         try {
-            referralNetworkClient.serverRequestCallBackAsync(
-                context_,
-                "${RHUtil.readRhCampaignID(context_)}/subscribers/track_referral_conversion_event",
-                referralParams
-            ) { response ->
-                // Handle the response in the callback
-                handleApiResponse(response, ApiConstants.OperationType.TRACK.ordinal)
-            }
+            mainCoroutineScope.launch {
+                try {
+                    val response = referralNetworkClient.serverRequestCallBackAsync(
+                        context_,
+                        "${prefHelper.rhCampaignID}/subscribers/track_referral_conversion_event",
+                        referralParams
+                    )
+                    if (response.status == "ok") {
+                        registerSubscriberCallback?.onSuccessCallback(response)
+                    } else {
+                        registerSubscriberCallback?.onFailureCallback(response)
+                    }
 
+                } catch (exception: Exception) {
+                    logger?.error(exception.toString())
+                }
+            }
         } catch (exception: Exception) {
             logger?.error(exception.toString())
         }
+
     }
 
     /**
@@ -159,16 +215,25 @@ class RH(var context_: Context) {
      * **/
     fun captureShare(callback: RHReferralCallBackListener?, referralParams: ReferralParams) {
         registerSubscriberCallback = callback
+        val mainCoroutineScope = CoroutineScope(Dispatchers.Main)
         try {
-            referralNetworkClient.serverRequestCallBackAsync(
-                context_,
-                "${RHUtil.readRhCampaignID(context_)}/subscribers/${prefHelper.rHSubscriberID}/click_capture",
-                referralParams
-            ) { response ->
-                // Handle the response in the callback
-                handleApiResponse(response, ApiConstants.OperationType.CAPTURE.ordinal)
-            }
+            mainCoroutineScope.launch {
+                try {
+                    val response = referralNetworkClient.serverRequestCallBackAsync(
+                        context_,
+                        "${prefHelper.rhCampaignID}/subscribers/${prefHelper.rHSubscriberID}/click_capture",
+                        referralParams
+                    )
+                    if (response.status == "ok") {
+                        registerSubscriberCallback?.onSuccessCallback(response)
+                    } else {
+                        registerSubscriberCallback?.onFailureCallback(response)
+                    }
 
+                } catch (exception: Exception) {
+                    logger?.error(exception.toString())
+                }
+            }
         } catch (exception: Exception) {
             logger?.error(exception.toString())
         }
@@ -182,16 +247,25 @@ class RH(var context_: Context) {
      * */
     fun pendingReferral(callback: RHReferralCallBackListener?, referralParams: ReferralParams) {
         registerSubscriberCallback = callback
+        val mainCoroutineScope = CoroutineScope(Dispatchers.Main)
         try {
-            referralNetworkClient.serverRequestCallBackAsync(
-                context_,
-                "${RHUtil.readRhCampaignID(context_)}/subscribers/pending_referral",
-                referralParams
-            ) { response ->
-                // Handle the response in the callback
-                handleApiResponse(response, ApiConstants.OperationType.CAPTURE.ordinal)
-            }
+            mainCoroutineScope.launch {
+                try {
+                    val response = referralNetworkClient.serverRequestCallBackAsync(
+                        context_,
+                        "${prefHelper.rhCampaignID}/subscribers/pending_referral",
+                        referralParams
+                    )
+                    if (response.status == "ok") {
+                        registerSubscriberCallback?.onSuccessCallback(response)
+                    } else {
+                        registerSubscriberCallback?.onFailureCallback(response)
+                    }
 
+                } catch (exception: Exception) {
+                    logger?.error(exception.toString())
+                }
+            }
         } catch (exception: Exception) {
             logger?.error(exception.toString())
         }
@@ -207,39 +281,58 @@ class RH(var context_: Context) {
         callback: RHReferralCallBackListener?, referralParams: ReferralParams
     ) {
         registerSubscriberCallback = callback
+        val mainCoroutineScope = CoroutineScope(Dispatchers.Main)
         try {
-            referralNetworkClient.serverRequestCallBackAsync(
-                context_,
-                "${RHUtil.readRhCampaignID(context_)}/subscribers/organic_track_referral",
-                referralParams
-            ) { response ->
-                // Handle the response in the callback
-                handleApiResponse(response, ApiConstants.OperationType.TRACK.ordinal)
-            }
+            mainCoroutineScope.launch {
+                try {
+                    val response = referralNetworkClient.serverRequestCallBackAsync(
+                        context_,
+                        "${prefHelper.rhCampaignID}/subscribers/organic_track_referral",
+                        referralParams
+                    )
+                    if (response.status == "ok") {
+                        registerSubscriberCallback?.onSuccessCallback(response)
+                    } else {
+                        registerSubscriberCallback?.onFailureCallback(response)
+                    }
 
+                } catch (exception: Exception) {
+                    logger?.error(exception.toString())
+                }
+            }
         } catch (exception: Exception) {
             logger?.error(exception.toString())
         }
-
     }
 
     fun getReferrer(
         callback: RHReferralCallBackListener?
     ) {
         registerSubscriberCallback = callback
+        val mainCoroutineScope = CoroutineScope(Dispatchers.Main)
         try {
-            referralNetworkClient.serverRequestGetReferrerAsync(
-                context_,
-                "${RHUtil.readRhCampaignID(context_)}/subscribers/referrer",
-            ) { response ->
-                // Handle the response in the callback
-                handleApiResponse(response, ApiConstants.OperationType.REFERRER.ordinal)
-            }
+            mainCoroutineScope.launch {
+                try {
+                    val response = referralNetworkClient.serverRequestGetReferrerAsync(
+                        context_,
+                        "${prefHelper.rhCampaignID}/subscribers/referrer",
+                    )
+                    if (response.status == "ok") {
+                        /*  response.data?.let {
+                              prefHelper.rHSubscriberID = it.id
+                          }*/
+                        registerSubscriberCallback?.onSuccessCallback(response)
+                    } else {
+                        registerSubscriberCallback?.onFailureCallback(response)
+                    }
 
+                } catch (exception: Exception) {
+                    logger?.error(exception.toString())
+                }
+            }
         } catch (exception: Exception) {
             logger?.error(exception.toString())
         }
-
 
     }
 
@@ -250,54 +343,29 @@ class RH(var context_: Context) {
      * */
     fun confirmReferral(callback: RHReferralCallBackListener?) {
         registerSubscriberCallback = callback
+        val mainCoroutineScope = CoroutineScope(Dispatchers.Main)
         try {
-            referralNetworkClient.serverRequestCallBackAsync(
-                context_,
-                "${RHUtil.readRhCampaignID(context_)}/subscribers/${prefHelper.rHSubscriberID}/confirm",
-                ReferralParams()
-            ) { response ->
-                // Handle the response in the callback
-                handleApiResponse(response, ApiConstants.OperationType.CAPTURE.ordinal)
-            }
+            mainCoroutineScope.launch {
+                try {
+                    val response = referralNetworkClient.serverRequestCallBackAsync(
+                        context_,
+                        "${prefHelper.rhCampaignID}/subscribers/${prefHelper.rHSubscriberID}/confirm",
+                        ReferralParams()
+                    )
+                    if (response.status == "ok") {
+                        registerSubscriberCallback?.onSuccessCallback(response)
+                    } else {
+                        registerSubscriberCallback?.onFailureCallback(response)
+                    }
 
+                } catch (exception: Exception) {
+                    logger?.error(exception.toString())
+                }
+            }
         } catch (exception: Exception) {
             logger?.error(exception.toString())
         }
 
-    }
-
-    /**
-    - Updated the function signature to include the response type @param ApiResponse<SubscriberData> and an @param ordinal parameter.
-    - Added conditional checks based on the response status and `ordinal` value.
-    - If the response status is "ok" and the `ordinal` is `ApiConstants.OperationType.DELETE`, clear preferences related to branch key change.
-    - If the response status is "ok" and the `ordinal` is `ApiConstants.OperationType.ADD`, update preferences with the subscriber data from the response.
-    - Invoked the appropriate callbacks from the `registerSubscriberCallback_` based on the response status and `ordinal`.
-     * **/
-    private fun handleApiResponse(response: ApiResponse<SubscriberData>, ordinal: Int) {
-        if (response.status == "ok") {
-            if (ordinal == ApiConstants.OperationType.DELETE.ordinal) prefHelper.clearPrefOnBranchKeyChange()
-
-            if (ordinal == ApiConstants.OperationType.ADD.ordinal) {
-                response.data?.let {
-                    prefHelper.rHReferralLink = it.referral_link
-                    prefHelper.appStoreReferrer = it.universal_link
-                    prefHelper.rHSubscriberID = it.id
-                }
-            }
-            registerSubscriberCallback?.onSuccessCallback(response)
-        } else {
-            prefHelper.rHReferralLink = PrefHelper.NO_STRING_VALUE
-            registerSubscriberCallback?.onFailureCallback(response)
-        }
-    }
-
-    private fun handlerewardApiResponse(response: ApiResponse<ListSubscriberData>, ordinal: Int) {
-        if (response.status == "ok") {
-            rewardCallback?.onRewardSuccessCallback(response)
-        } else {
-            prefHelper.rHReferralLink = PrefHelper.NO_STRING_VALUE
-            rewardCallback?.onRewardFailureCallback(response)
-        }
     }
 
 
@@ -312,15 +380,23 @@ class RH(var context_: Context) {
    * */
     fun getMyReferrals(callback: RHMyReferralCallBackListener?) {
         myReferralCallback = callback
+        val mainCoroutineScope = CoroutineScope(Dispatchers.Main)
         try {
-            referralNetworkClient.serverRequestGetMyReferralAsync(
-                context_,
-                "${RHUtil.readRhCampaignID(context_)}/subscribers/${prefHelper.rHSubscriberID}/referrals_data"
-            ) { response ->
-                // Handle the response in the callback
-                handleMyReferralApiResponse(response)
+            mainCoroutineScope.launch {
+                try {
+                    val response = referralNetworkClient.serverRequestGetMyReferralAsync(
+                        context_,
+                        "${prefHelper.rhCampaignID}/subscribers/${prefHelper.rHSubscriberID}/referrals_data"
+                    )
+                    if (response.status == "ok") {
+                        myReferralCallback?.onMyReferralSuccessCallback(response)
+                    } else {
+                        myReferralCallback?.onMyReferralFailureCallback(response)
+                    }
+                } catch (exception: Exception) {
+                    logger?.error(exception.toString())
+                }
             }
-
         } catch (exception: Exception) {
             logger?.error(exception.toString())
         }
@@ -338,14 +414,24 @@ class RH(var context_: Context) {
     * */
     fun getLeaderboard(callback: RHLeaderBoardReferralCallBackListener?) {
         leaderBoardReferralCallback = callback
-        try {
-            referralNetworkClient.serverRequestGetLeaderboardAsync(
-                context_, "${RHUtil.readRhCampaignID(context_)}/leaderboard"
-            ) { response ->
-                // Handle the response in the callback
-                handleLeaderBoardReferralApiResponse(response)
-            }
+        val mainCoroutineScope = CoroutineScope(Dispatchers.Main)
 
+        try {
+            mainCoroutineScope.launch {
+                try {
+                    val response = referralNetworkClient.serverRequestGetLeaderboardAsync(
+                        context_, "${prefHelper.rhCampaignID}/leaderboard"
+                    )
+                    // Handle the response
+                    if (response.status == "ok") {
+                        leaderBoardReferralCallback?.onLeaderBoardReferralSuccessCallback(response)
+                    } else {
+                        leaderBoardReferralCallback?.onLeaderBoardReferralFailureCallback(response)
+                    }
+                } catch (exception: Exception) {
+                    logger?.error(exception.toString())
+                }
+            }
         } catch (exception: Exception) {
             logger?.error(exception.toString())
         }
@@ -353,45 +439,29 @@ class RH(var context_: Context) {
 
     fun getRewards(callback: RHRewardCallBackListener?) {
         rewardCallback = callback
+        val mainCoroutineScope = CoroutineScope(Dispatchers.Main)
         try {
-            referralNetworkClient.serverRequestRewardAsync(
-                context_,
-                "${RHUtil.readRhCampaignID(context_)}/subscribers/${prefHelper.rHSubscriberID}/rewards"
-            ) { response ->
-                // Handle the response in the callback
-                handlerewardApiResponse(response, ApiConstants.OperationType.REWARDS.ordinal)
+            mainCoroutineScope.launch {
+                try {
+                    val response = referralNetworkClient.serverRequestRewardAsync(
+                        context_,
+                        "${prefHelper.rhCampaignID}/subscribers/${prefHelper.rHSubscriberID}/rewards"
+                    )
+                    if (response.status == "ok") {
+                        rewardCallback?.onRewardSuccessCallback(response)
+                    } else {
+                        prefHelper.rHReferralLink = PrefHelper.NO_STRING_VALUE
+                        rewardCallback?.onRewardFailureCallback(response)
+                    }
+                } catch (exception: Exception) {
+                    logger?.error(exception.toString())
+                }
             }
-
         } catch (exception: Exception) {
             logger?.error(exception.toString())
         }
     }
 
-
-    /**
-    - Updated the function signature to include the response type `ApiResponse<ListSubscriberData>`.
-    - Added conditional checks based on the response status.
-     * **/
-
-    private fun handleMyReferralApiResponse(response: ApiResponse<ListSubscriberData>) {
-        if (response.status == "ok") {
-            myReferralCallback?.onMyReferralSuccessCallback(response)
-        } else {
-            myReferralCallback?.onMyReferralFailureCallback(response)
-        }
-    }
-
-    /**
-    - Updated the function signature to include the response type `ApiResponse<RankingDataContent>`.
-    - Added conditional checks based on the response status.
-     * **/
-    private fun handleLeaderBoardReferralApiResponse(response: ApiResponse<RankingDataContent>) {
-        if (response.status == "ok") {
-            leaderBoardReferralCallback?.onLeaderBoardReferralSuccessCallback(response)
-        } else {
-            leaderBoardReferralCallback?.onLeaderBoardReferralFailureCallback(response)
-        }
-    }
 
     interface RHReferralCallBackListener {
         fun onSuccessCallback(response: ApiResponse<SubscriberData>?)
@@ -437,50 +507,28 @@ class RH(var context_: Context) {
                 return RHReferral_
             }
 
+        @JvmStatic
         @Synchronized
-        private fun initRHSDK(context: Context, RHaccessToken: String?, RHuuid: String?): RH? {
+        fun initRHSDK(context: Context, ApiToken: String?, RHuuid: String?): RH? {
             if (RHReferral_ != null) {
-                Logger().debug("Warning, attempted to reinitialize RH SDK singleton!")
+                Logger().warn("Warning, attempted to reinitialize RH SDK singleton!")
                 return RHReferral_
             }
             RHReferral_ = RH(context.applicationContext)
-            if (TextUtils.isEmpty(RHaccessToken)) {
-                Logger().debug("Warning: Please enter your access_token in your project's Manifest file!")
-                RHReferral_!!.prefHelper.setRHAccessTokenKey(PrefHelper.NO_STRING_VALUE)
+            if (TextUtils.isEmpty(ApiToken)) {
+                Logger().warn("Warning: Please enter your access_token in your project's Manifest file!")
+                RHReferral_?.prefHelper?.setRHAccessTokenKey(PrefHelper.NO_STRING_VALUE)
             } else {
-                RHReferral_!!.prefHelper.setRHAccessTokenKey(RHaccessToken)
+                RHReferral_?.prefHelper?.setRHAccessTokenKey(ApiToken)
             }
             if (TextUtils.isEmpty(RHuuid)) {
-                Logger().debug("Warning: Please enter your Campaign  uuid in your project's Manifest file!")
-                RHReferral_!!.prefHelper.setRHCampaignID(PrefHelper.NO_STRING_VALUE)
+                Logger().warn("Warning: Please enter your Campaign  uuid in your project's Manifest file!")
+                RHReferral_?.prefHelper?.setRHCampaignID(PrefHelper.NO_STRING_VALUE)
             } else {
-                RHReferral_!!.prefHelper.setRHCampaignID(RHuuid)
+                RHReferral_?.prefHelper?.setRHCampaignID(RHuuid)
             }
             return RHReferral_
         }
 
-        /**
-         *
-         * Singleton method to return the pre-initialised, or newly initialise and return, a singleton
-         * object of the type [RH].
-         *
-         * Use this whenever you need to call a method directly on the [RH] object.
-         *
-         * @param context A [Context] from which this call was made.
-         * @return An initialised [RH] object, either fetched from a pre-initialised
-         * instance within the singleton class, or a newly instantiated object where
-         * one was not already requested during the current app lifecycle.
-         */
-        @JvmStatic
-        @Synchronized
-        fun getAutoInstance(context: Context): RH? {
-            this.RHReferral_?.context_ = context
-            Logger().debug("Warning, attempted to getAutoInstance RH SDK singleton!")
-            if (RHReferral_ == null) {
-                RHReferral_ =
-                    initRHSDK(context, RHUtil.readRhKey(context), RHUtil.readRhCampaignID(context))
-            }
-            return RHReferral_
-        }
     }
 }
