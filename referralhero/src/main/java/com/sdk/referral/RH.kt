@@ -7,9 +7,13 @@ import com.sdk.referral.model.*
 import com.sdk.referral.networking.ReferralNetworkClient
 import com.sdk.referral.utils.DeviceInfo
 import com.sdk.referral.utils.PrefHelper
+import com.sdk.referral.utils.RHUtil
+import com.sdk.referral.utils.StoreReferrerGooglePlayStore.IGoogleInstallReferrerEvents
+import com.sdk.referral.utils.StoreReferrerGooglePlayStore.fetch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+
 
 /**
  * Created by Jaspalsinh Gohil(Jayden) on 02-05-2023.
@@ -30,6 +34,8 @@ class RH(var context_: Context) {
         prefHelper = PrefHelper(context_)
         logger = Logger()
         referralNetworkClient = ReferralNetworkClient()
+        fetchInstallReferrer(context_)
+
     }
 
     /**
@@ -42,6 +48,11 @@ class RH(var context_: Context) {
         registerSubscriberCallback = callback
         val mainCoroutineScope = CoroutineScope(Dispatchers.Main)
 
+        if (prefHelper.appStoreReferrer?.trim()?.isNotEmpty() == true) {
+            if (!prefHelper.appStoreReferrer.toString()
+                    .equals("NO_STRING_VALUE", true)
+            ) referralParams.referrer = prefHelper.appStoreReferrer
+        }
         try {
             mainCoroutineScope.launch {
                 try {
@@ -49,11 +60,8 @@ class RH(var context_: Context) {
                         context_, "${prefHelper.rhCampaignID}/subscribers/", referralParams
                     )
                     if (response.status == "ok") {
-                        response.data?.let {
-                            prefHelper.rHReferralLink = it.referral_link
-                            prefHelper.appStoreReferrer = it.universal_link
-                            prefHelper.rHSubscriberID = it.id
-                        }
+                        prefHelper.rHSubscriberID = response.data?.id
+                        prefHelper.rHReferralLink = response.data?.universal_link
                         registerSubscriberCallback?.onSuccessCallback(response)
                     } else {
                         prefHelper.rHReferralLink = PrefHelper.NO_STRING_VALUE
@@ -119,6 +127,7 @@ class RH(var context_: Context) {
                     )
                     if (response.status == "ok") {
                         prefHelper.clearPrefOnBranchKeyChange()
+                        prefHelper.rHSubscriberID = ""
                         registerSubscriberCallback?.onSuccessCallback(response)
                     } else {
                         registerSubscriberCallback?.onFailureCallback(response)
@@ -462,6 +471,15 @@ class RH(var context_: Context) {
         }
     }
 
+    // Method to fetch install referrer
+    fun fetchInstallReferrer(context: Context?) {
+        fetch(context, object : IGoogleInstallReferrerEvents {
+            override fun onGoogleInstallReferrerEventsFinished() {
+                Logger().warn("Referrer Data:  ${RHReferral_?.prefHelper?.appStoreReferrer}")
+            }
+        })
+    }
+
 
     interface RHReferralCallBackListener {
         fun onSuccessCallback(response: ApiResponse<SubscriberData>?)
@@ -503,7 +521,19 @@ class RH(var context_: Context) {
             get() {
                 if (RHReferral_ == null) {
                     PrefHelper.Debug("RH instance is not created yet. Make sure you call getAutoInstance(Context).")
+                } else {
+                    RHReferral_?.prefHelper?.rhAccessTokenKey = RHReferral_?.context_?.let {
+                        RHUtil.readRhKey(
+                            it
+                        )
+                    }
+                    RHReferral_?.prefHelper?.rhCampaignID = RHReferral_?.context_?.let {
+                        RHUtil.readRhCampaignID(
+                            it
+                        )
+                    }
                 }
+
                 return RHReferral_
             }
 
@@ -517,18 +547,20 @@ class RH(var context_: Context) {
             RHReferral_ = RH(context.applicationContext)
             if (TextUtils.isEmpty(ApiToken)) {
                 Logger().warn("Warning: Please enter your access_token in your project's Manifest file!")
-                RHReferral_?.prefHelper?.setRHAccessTokenKey(PrefHelper.NO_STRING_VALUE)
+                RHReferral_?.prefHelper?.setRHAccessTokenKey(RHUtil.readRhKey(context))
             } else {
                 RHReferral_?.prefHelper?.setRHAccessTokenKey(ApiToken)
             }
             if (TextUtils.isEmpty(RHuuid)) {
                 Logger().warn("Warning: Please enter your Campaign  uuid in your project's Manifest file!")
-                RHReferral_?.prefHelper?.setRHCampaignID(PrefHelper.NO_STRING_VALUE)
+                RHReferral_?.prefHelper?.setRHCampaignID(RHUtil.readRhCampaignID(context))
             } else {
                 RHReferral_?.prefHelper?.setRHCampaignID(RHuuid)
             }
+            RHReferral_?.fetchInstallReferrer(context)
             return RHReferral_
         }
+
 
     }
 }

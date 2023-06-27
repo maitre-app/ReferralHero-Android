@@ -2,7 +2,6 @@ package com.sdk.referral.utils
 
 import android.content.Context
 import android.content.pm.PackageManager
-import java.util.*
 
 /**
  * Class for RH utility methods
@@ -23,7 +22,7 @@ object RHUtil {
             if (ai.metaData != null) {
                 RHKey = ai.metaData.getString(metaDataKey)
                 if (RHKey == null) {
-                    RHKey = ai.metaData.getString("com.sdk.referral.RhKey")
+                    RHKey = ai.metaData.getString("com.sdk.referral.token")
                 }
             }
         } catch (ignore: PackageManager.NameNotFoundException) {
@@ -66,8 +65,5 @@ object RHUtil {
         return RHKey
     }
 
-    fun formatString(format: String?, vararg args: Any?): String? {
-        return java.lang.String.format(Locale.US, format, args)
-    }
 
 }

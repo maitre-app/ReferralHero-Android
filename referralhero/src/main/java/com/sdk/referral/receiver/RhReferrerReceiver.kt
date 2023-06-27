@@ -32,6 +32,7 @@ class RhReferrerReceiver : BroadcastReceiver() {
             return
         } else {
             PrefHelper(context).appStoreReferrer = extras?.getString(KEY_REFERRER)
+            PrefHelper.Debug("ReferrerReceiver" + extras?.getString(KEY_REFERRER).toString())
             LocalBroadcastManager.getInstance(context).sendBroadcast(Intent(ACTION_UPDATE_DATA))
         }
 

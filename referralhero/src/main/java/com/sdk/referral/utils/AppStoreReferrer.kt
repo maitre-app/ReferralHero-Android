@@ -17,6 +17,7 @@ object AppStoreReferrer {
         installClickTS: Long,
         store: String?
     ) {
+        val prefHelper = PrefHelper.getInstance(context!!)
         var rawReferrerString = rawReferrerString
         if (rawReferrerString != null) {
             Log.e("RH Referral", rawReferrerString + "null")
@@ -27,6 +28,7 @@ object AppStoreReferrer {
                     rawReferrerString.split("&".toRegex()).dropLastWhile { it.isEmpty() }
                         .toTypedArray()
                 //Always set the raw referrer string:
+                prefHelper?.appStoreReferrer = rawReferrerString
                 for (referrerParam in referralParams) {
                     if (!TextUtils.isEmpty(referrerParam)) {
                         var splitter = "="

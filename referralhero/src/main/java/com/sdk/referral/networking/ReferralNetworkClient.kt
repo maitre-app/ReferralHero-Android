@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.sdk.referral.model.*
 import com.sdk.referral.utils.DeviceInfo
+import com.sdk.referral.utils.ErrorCode
 import com.sdk.referral.utils.PrefHelper
 import kotlinx.coroutines.isActive
 import okhttp3.*
@@ -29,16 +30,14 @@ class ReferralNetworkClient {
     - Handled the response based on the HTTP status code, returning the parsed response if code is 200, otherwise returning a new `ApiResponse` object with the error details.
      * */
     suspend fun serverRequestGetAsync(
-        context: Context,
-        endpoint: String
+        context: Context, endpoint: String
     ): ApiResponse<SubscriberData> = suspendCoroutine { continuation ->
         val urlBuilder = (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()?.newBuilder()
         val url = urlBuilder?.build()?.toString()
-        val requestBuilder =
-            Request.Builder().url(url!!)
-                .addHeader("Authorization", PrefHelper(context).rhAccessTokenKey!!)
-                .addHeader("Accept", "application/vnd.referralhero.v1")
-                .addHeader("Content-Type", "application/json").get()
+        val requestBuilder = Request.Builder().url(url!!)
+            .addHeader("Authorization", PrefHelper(context).rhAccessTokenKey!!)
+            .addHeader("Accept", "application/vnd.referralhero.v1")
+            .addHeader("Content-Type", "application/json").get()
 
         val request = requestBuilder.build()
 
@@ -48,41 +47,49 @@ class ReferralNetworkClient {
             override fun onFailure(call: Call, e: IOException) {
                 if (continuation.context.isActive) {
                     val errorResponse = ApiResponse<SubscriberData>(
-                        "error",
-                        e.message,
-                        "0",
-                        null,
-                        null,
-                        0
+                        "error", e.message, "0", null, null, 0
                     )
                     continuation.resume(errorResponse)
                 }
             }
 
             override fun onResponse(call: Call, response: Response) {
-                val responseString = response.body?.string()
-                com.sdk.referral.logger.Logger().debug("API", responseString)
-                val parsedResponse: ApiResponse<SubscriberData> = Gson().fromJson(
-                    responseString,
-                    object : TypeToken<ApiResponse<SubscriberData>>() {}.type
-                )
+                if (response.code == 200 || response.code == 403 || response.code == 401 || response.code == 400) {
+                    val responseString = response.body?.string()
+                    com.sdk.referral.logger.Logger().debug("API", responseString)
+                    val parsedResponse: ApiResponse<SubscriberData> = Gson().fromJson(
+                        responseString, object : TypeToken<ApiResponse<SubscriberData>>() {}.type
+                    )
 
-                if (continuation.context.isActive) {
-                    if (response.isSuccessful) {
-                        continuation.resume(parsedResponse)
-                    } else {
-                        continuation.resume(
-                            ApiResponse(
-                                "error",
-                                parsedResponse.message,
-                                parsedResponse.code,
-                                null,
-                                null,
-                                0
+                    if (continuation.context.isActive) {
+                        if (response.isSuccessful) {
+                            continuation.resume(parsedResponse)
+                        } else {
+                            continuation.resume(
+                                ApiResponse(
+                                    "error",
+                                    parsedResponse.message,
+                                    parsedResponse.code,
+                                    null,
+                                    null,
+                                    0
+                                )
                             )
-                        )
+                        }
                     }
+                } else {
+                    continuation.resume(
+                        ApiResponse(
+                            "error",
+                            ErrorCode.getMessage(response.code),
+                            response.code.toString(),
+                            null,
+                            null,
+                            0
+                        )
+                    )
                 }
+
             }
         })
     }
@@ -98,19 +105,16 @@ class ReferralNetworkClient {
      * ***/
 
     suspend fun serverRequestCallBackAsync(
-        context: Context,
-        endpoint: String,
-        referralParams: ReferralParams
+        context: Context, endpoint: String, referralParams: ReferralParams
     ): ApiResponse<SubscriberData> = suspendCoroutine { continuation ->
         val jsonMediaType = "application/json".toMediaTypeOrNull()
         val requestBody: RequestBody = Gson().toJson(referralParams).toRequestBody(jsonMediaType)
         val urlBuilder = (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()?.newBuilder()
         val url = urlBuilder?.build()?.toString()
 
-        val requestBuilder =
-            Request.Builder().url(url!!)
-                .addHeader("Authorization", PrefHelper(context).rhAccessTokenKey!!)
-                .addHeader("Accept", "application/vnd.referralhero.v1").post(requestBody)
+        val requestBuilder = Request.Builder().url(url!!)
+            .addHeader("Authorization", PrefHelper(context).rhAccessTokenKey!!)
+            .addHeader("Accept", "application/vnd.referralhero.v1").post(requestBody)
 
         val request = requestBuilder.build()
 
@@ -120,40 +124,41 @@ class ReferralNetworkClient {
             override fun onFailure(call: Call, e: IOException) {
                 if (continuation.context.isActive) {
                     val errorResponse = ApiResponse<SubscriberData>(
-                        "error",
-                        e.message,
-                        "0",
-                        null,
-                        null,
-                        0
+                        "error", e.message, "0", null, null, 0
                     )
                     continuation.resume(errorResponse)
                 }
             }
 
             override fun onResponse(call: Call, response: Response) {
-                val responseString = response.body?.string()
-                com.sdk.referral.logger.Logger().debug("API", responseString)
-                com.sdk.referral.logger.Logger().debug("API", responseString)
-                val parsedResponse: ApiResponse<SubscriberData> = Gson().fromJson(
-                    responseString,
-                    object : TypeToken<ApiResponse<SubscriberData>>() {}.type
-                )
 
-                if (continuation.context.isActive) {
-                    if (response.isSuccessful) {
-                        continuation.resume(parsedResponse)
-                    } else {
-                        val errorResponse = ApiResponse<SubscriberData>(
-                            "error",
-                            parsedResponse.message,
-                            parsedResponse.code,
-                            null,
-                            null,
-                            0
-                        )
-                        continuation.resume(errorResponse)
+                if (response.code == 200 || response.code == 403 || response.code == 401 || response.code == 400) {
+                    val responseString = response.body?.string()
+                    com.sdk.referral.logger.Logger().debug("API", responseString)
+                    val parsedResponse: ApiResponse<SubscriberData> = Gson().fromJson(
+                        responseString, object : TypeToken<ApiResponse<SubscriberData>>() {}.type
+                    )
+
+                    if (continuation.context.isActive) {
+                        if (response.isSuccessful) {
+                            continuation.resume(parsedResponse)
+                        } else {
+                            val errorResponse = ApiResponse<SubscriberData>(
+                                "error", parsedResponse.message, parsedResponse.code, null, null, 0
+                            )
+                            continuation.resume(errorResponse)
+                        }
                     }
+                } else {
+                    val errorResponse = ApiResponse<SubscriberData>(
+                        "error",
+                        ErrorCode.getMessage(response.code),
+                        response.code.toString(),
+                        null,
+                        null,
+                        0
+                    )
+                    continuation.resume(errorResponse)
                 }
             }
         })
@@ -170,17 +175,15 @@ class ReferralNetworkClient {
     - Handled the response based on the HTTP status code, returning the parsed response if code is 200, otherwise returning a new `ApiResponse` object with the error details.
      * ***/
     suspend fun serverRequestDeleteAsync(
-        context: Context,
-        endpoint: String
+        context: Context, endpoint: String
     ): ApiResponse<SubscriberData> = suspendCoroutine { continuation ->
         val urlBuilder = (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()?.newBuilder()
         val url = urlBuilder?.build()?.toString()
 
-        val requestBuilder =
-            Request.Builder().url(url!!)
-                .addHeader("Authorization", PrefHelper(context).rhAccessTokenKey!!)
-                .addHeader("Accept", "application/vnd.referralhero.v1")
-                .addHeader("Content-Type", "application/json").delete()
+        val requestBuilder = Request.Builder().url(url!!)
+            .addHeader("Authorization", PrefHelper(context).rhAccessTokenKey!!)
+            .addHeader("Accept", "application/vnd.referralhero.v1")
+            .addHeader("Content-Type", "application/json").delete()
 
         val request = requestBuilder.build()
 
@@ -190,41 +193,43 @@ class ReferralNetworkClient {
             override fun onFailure(call: Call, e: IOException) {
                 if (continuation.context.isActive) {
                     val errorResponse = ApiResponse<SubscriberData>(
-                        "error",
-                        e.message,
-                        "0",
-                        null,
-                        null,
-                        0
+                        "error", e.message, "0", null, null, 0
                     )
                     continuation.resume(errorResponse)
                 }
             }
 
             override fun onResponse(call: Call, response: Response) {
-                val responseString = response.body?.string()
-                com.sdk.referral.logger.Logger().debug("API", responseString)
-                com.sdk.referral.logger.Logger().debug("API", responseString)
-                val parsedResponse: ApiResponse<SubscriberData> = Gson().fromJson(
-                    responseString,
-                    object : TypeToken<ApiResponse<SubscriberData>>() {}.type
-                )
+                if (response.code == 200 || response.code == 403 || response.code == 401 || response.code == 400) {
+                    val responseString = response.body?.string()
+                    com.sdk.referral.logger.Logger().debug("API", responseString)
+                    val parsedResponse: ApiResponse<SubscriberData> = Gson().fromJson(
+                        responseString, object : TypeToken<ApiResponse<SubscriberData>>() {}.type
+                    )
 
-                if (continuation.context.isActive) {
-                    if (response.isSuccessful) {
-                        continuation.resume(parsedResponse)
-                    } else {
-                        val errorResponse = ApiResponse<SubscriberData>(
-                            "error",
-                            parsedResponse.message,
-                            parsedResponse.code,
-                            null,
-                            null,
-                            0
-                        )
-                        continuation.resume(errorResponse)
+                    if (continuation.context.isActive) {
+                        if (response.isSuccessful) {
+                            continuation.resume(parsedResponse)
+                        } else {
+                            val errorResponse = ApiResponse<SubscriberData>(
+                                "error", parsedResponse.message, parsedResponse.code, null, null, 0
+                            )
+                            continuation.resume(errorResponse)
+                        }
                     }
+                } else {
+                    val errorResponse = ApiResponse<SubscriberData>(
+                        "error",
+                        ErrorCode.getMessage(response.code),
+                        response.code.toString(),
+                        null,
+                        null,
+                        0
+                    )
+                    continuation.resume(errorResponse)
+
                 }
+
             }
         })
     }
@@ -240,19 +245,16 @@ class ReferralNetworkClient {
     - Handled the response based on the HTTP status code, returning the parsed response if the code is 200, otherwise returning a new `ApiResponse` object with the error details.
      * ***/
     suspend fun serverRequestPatchAsync(
-        context: Context,
-        endpoint: String,
-        referralParams: ReferralParams
+        context: Context, endpoint: String, referralParams: ReferralParams
     ): ApiResponse<SubscriberData> = suspendCoroutine { continuation ->
         val jsonMediaType = "application/json".toMediaTypeOrNull()
         val requestBody: RequestBody = Gson().toJson(referralParams).toRequestBody(jsonMediaType)
         val urlBuilder = (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()?.newBuilder()
         val url = urlBuilder?.build()?.toString()
 
-        val requestBuilder =
-            Request.Builder().url(url!!)
-                .addHeader("Authorization", PrefHelper(context).rhAccessTokenKey!!)
-                .addHeader("Accept", "application/vnd.referralhero.v1").patch(requestBody)
+        val requestBuilder = Request.Builder().url(url!!)
+            .addHeader("Authorization", PrefHelper(context).rhAccessTokenKey!!)
+            .addHeader("Accept", "application/vnd.referralhero.v1").patch(requestBody)
 
         val request = requestBuilder.build()
 
@@ -262,41 +264,46 @@ class ReferralNetworkClient {
             override fun onFailure(call: Call, e: IOException) {
                 if (continuation.context.isActive) {
                     val errorResponse = ApiResponse<SubscriberData>(
-                        "error",
-                        e.message,
-                        "0",
-                        null,
-                        null,
-                        0
+                        "error", e.message, "0", null, null, 0
                     )
                     continuation.resume(errorResponse)
                 }
             }
 
             override fun onResponse(call: Call, response: Response) {
-                val responseString = response.body?.string()
-                com.sdk.referral.logger.Logger().debug("API", responseString)
-                com.sdk.referral.logger.Logger().debug("API", responseString)
-                val parsedResponse: ApiResponse<SubscriberData> = Gson().fromJson(
-                    responseString,
-                    object : TypeToken<ApiResponse<SubscriberData>>() {}.type
-                )
 
-                if (continuation.context.isActive) {
-                    if (response.isSuccessful) {
-                        continuation.resume(parsedResponse)
-                    } else {
-                        val errorResponse = ApiResponse<SubscriberData>(
-                            "error",
-                            parsedResponse.message,
-                            parsedResponse.code,
-                            null,
-                            null,
-                            0
-                        )
-                        continuation.resume(errorResponse)
+                if (response.code == 200 || response.code == 403 || response.code == 401 || response.code == 400) {
+                    val responseString = response.body?.string()
+                    com.sdk.referral.logger.Logger().debug("API", responseString)
+                    com.sdk.referral.logger.Logger().debug("API", responseString)
+                    val parsedResponse: ApiResponse<SubscriberData> = Gson().fromJson(
+                        responseString, object : TypeToken<ApiResponse<SubscriberData>>() {}.type
+                    )
+
+                    if (continuation.context.isActive) {
+                        if (response.isSuccessful) {
+                            continuation.resume(parsedResponse)
+                        } else {
+                            val errorResponse = ApiResponse<SubscriberData>(
+                                "error", parsedResponse.message, parsedResponse.code, null, null, 0
+                            )
+                            continuation.resume(errorResponse)
+                        }
                     }
+                } else {
+                    val errorResponse = ApiResponse<SubscriberData>(
+                        "error",
+                        ErrorCode.getMessage(response.code),
+                        response.code.toString(),
+                        null,
+                        null,
+                        0
+                    )
+                    continuation.resume(errorResponse)
+
                 }
+
+
             }
         })
     }
@@ -311,16 +318,14 @@ class ReferralNetworkClient {
     - Handled the response based on the HTTP status code, returning the parsed response if code is 200, otherwise returning a new `ApiResponse` object with the error details.
      * */
     suspend fun serverRequestGetMyReferralAsync(
-        context: Context,
-        endpoint: String
+        context: Context, endpoint: String
     ): ApiResponse<ListSubscriberData> = suspendCoroutine { continuation ->
         val urlBuilder = (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()?.newBuilder()
         val url = urlBuilder?.build()?.toString()
-        val requestBuilder =
-            Request.Builder().url(url!!)
-                .addHeader("Authorization", PrefHelper(context).rhAccessTokenKey!!)
-                .addHeader("Accept", "application/vnd.referralhero.v1")
-                .addHeader("Content-Type", "application/json").get()
+        val requestBuilder = Request.Builder().url(url!!)
+            .addHeader("Authorization", PrefHelper(context).rhAccessTokenKey!!)
+            .addHeader("Accept", "application/vnd.referralhero.v1")
+            .addHeader("Content-Type", "application/json").get()
 
         val request = requestBuilder.build()
 
@@ -330,40 +335,46 @@ class ReferralNetworkClient {
             override fun onFailure(call: Call, e: IOException) {
                 if (continuation.context.isActive) {
                     val errorResponse = ApiResponse<ListSubscriberData>(
-                        "error",
-                        e.message,
-                        "0",
-                        null,
-                        null,
-                        0
+                        "error", e.message, "0", null, null, 0
                     )
                     continuation.resume(errorResponse)
                 }
             }
 
             override fun onResponse(call: Call, response: Response) {
-                val responseString = response.body?.string()
-                com.sdk.referral.logger.Logger().debug("API", responseString)
-                val parsedResponse: ApiResponse<ListSubscriberData> = Gson().fromJson(
-                    responseString,
-                    object : TypeToken<ApiResponse<ListSubscriberData>>() {}.type
-                )
 
-                if (continuation.context.isActive) {
-                    if (response.isSuccessful) {
-                        continuation.resume(parsedResponse)
-                    } else {
-                        val errorResponse = ApiResponse<ListSubscriberData>(
-                            "error",
-                            parsedResponse.message,
-                            parsedResponse.code,
-                            null,
-                            null,
-                            0
-                        )
-                        continuation.resume(errorResponse)
+                if (response.code == 200 || response.code == 403 || response.code == 401 || response.code == 400) {
+                    val responseString = response.body?.string()
+                    com.sdk.referral.logger.Logger().debug("API", responseString)
+                    val parsedResponse: ApiResponse<ListSubscriberData> = Gson().fromJson(
+                        responseString,
+                        object : TypeToken<ApiResponse<ListSubscriberData>>() {}.type
+                    )
+
+                    if (continuation.context.isActive) {
+                        if (response.isSuccessful) {
+                            continuation.resume(parsedResponse)
+                        } else {
+                            val errorResponse = ApiResponse<ListSubscriberData>(
+                                "error", parsedResponse.message, parsedResponse.code, null, null, 0
+                            )
+                            continuation.resume(errorResponse)
+                        }
                     }
+                } else {
+                    val errorResponse = ApiResponse<ListSubscriberData>(
+                        "error",
+                        ErrorCode.getMessage(response.code),
+                        response.code.toString(),
+                        null,
+                        null,
+                        0
+                    )
+                    continuation.resume(errorResponse)
+
                 }
+
+
             }
         })
     }
@@ -378,16 +389,14 @@ class ReferralNetworkClient {
     - Handled the response based on the HTTP status code, returning the parsed response if code is 200, otherwise returning a new `ApiResponse` object with the error details.
      * */
     suspend fun serverRequestGetLeaderboardAsync(
-        context: Context,
-        endpoint: String
+        context: Context, endpoint: String
     ): ApiResponse<RankingDataContent> = suspendCoroutine { continuation ->
         val urlBuilder = (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()?.newBuilder()
         val url = urlBuilder?.build()?.toString()
-        val requestBuilder =
-            Request.Builder().url(url!!)
-                .addHeader("Authorization", PrefHelper(context).rhAccessTokenKey!!)
-                .addHeader("Accept", "application/vnd.referralhero.v1")
-                .addHeader("Content-Type", "application/json").get()
+        val requestBuilder = Request.Builder().url(url!!)
+            .addHeader("Authorization", PrefHelper(context).rhAccessTokenKey!!)
+            .addHeader("Accept", "application/vnd.referralhero.v1")
+            .addHeader("Content-Type", "application/json").get()
 
         val request = requestBuilder.build()
 
@@ -399,42 +408,49 @@ class ReferralNetworkClient {
             }
 
             override fun onResponse(call: Call, response: Response) {
-                val responseString = response.body?.string()
-                com.sdk.referral.logger.Logger().debug("API", responseString)
-                val parsedResponse: ApiResponse<RankingDataContent> = Gson().fromJson(
-                    responseString,
-                    object : TypeToken<ApiResponse<RankingDataContent>>() {}.type
-                )
+                if (response.code == 200 || response.code == 403 || response.code == 401 || response.code == 400) {
+                    val responseString = response.body?.string()
+                    com.sdk.referral.logger.Logger().debug("API", responseString)
+                    val parsedResponse: ApiResponse<RankingDataContent> = Gson().fromJson(
+                        responseString,
+                        object : TypeToken<ApiResponse<RankingDataContent>>() {}.type
+                    )
 
-                if (response.isSuccessful) {
-                    continuation.resume(parsedResponse)
+                    if (response.isSuccessful) {
+                        continuation.resume(parsedResponse)
+                    } else {
+                        val errorResponse = ApiResponse<RankingDataContent>(
+                            "error", parsedResponse.message, parsedResponse.code, null, null, 0
+                        )
+                        continuation.resume(errorResponse)
+                    }
                 } else {
                     val errorResponse = ApiResponse<RankingDataContent>(
                         "error",
-                        parsedResponse.message,
-                        parsedResponse.code,
+                        ErrorCode.getMessage(response.code),
+                        response.code.toString(),
                         null,
                         null,
                         0
                     )
                     continuation.resume(errorResponse)
                 }
+
+
             }
         })
     }
 
 
     suspend fun serverRequestRewardAsync(
-        context: Context,
-        endpoint: String
+        context: Context, endpoint: String
     ): ApiResponse<ListSubscriberData> = suspendCoroutine { continuation ->
         val urlBuilder = (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()?.newBuilder()
         val url = urlBuilder?.build()?.toString()
-        val requestBuilder =
-            Request.Builder().url(url!!)
-                .addHeader("Authorization", PrefHelper(context).rhAccessTokenKey!!)
-                .addHeader("Accept", "application/vnd.referralhero.v1")
-                .addHeader("Content-Type", "application/json").get()
+        val requestBuilder = Request.Builder().url(url!!)
+            .addHeader("Authorization", PrefHelper(context).rhAccessTokenKey!!)
+            .addHeader("Accept", "application/vnd.referralhero.v1")
+            .addHeader("Content-Type", "application/json").get()
 
         val request = requestBuilder.build()
 
@@ -447,31 +463,37 @@ class ReferralNetworkClient {
 
             override fun onResponse(call: Call, response: Response) {
                 val responseString = response.body?.string()
-                com.sdk.referral.logger.Logger().debug("API", responseString)
-                val parsedResponse: ApiResponse<ListSubscriberData> = Gson().fromJson(
-                    responseString,
-                    object : TypeToken<ApiResponse<ListSubscriberData>>() {}.type
-                )
-                if (response.isSuccessful) {
-                    continuation.resume(parsedResponse)
+                if (response.code == 200 || response.code == 403 || response.code == 401 || response.code == 400) {
+                    val parsedResponse: ApiResponse<ListSubscriberData> = Gson().fromJson(
+                        responseString,
+                        object : TypeToken<ApiResponse<ListSubscriberData>>() {}.type
+                    )
+                    if (response.isSuccessful) {
+                        continuation.resume(parsedResponse)
+                    } else {
+                        val errorResponse = ApiResponse<ListSubscriberData>(
+                            "error", parsedResponse.message, parsedResponse.code, null, null, 0
+                        )
+                        continuation.resume(errorResponse)
+                    }
                 } else {
                     val errorResponse = ApiResponse<ListSubscriberData>(
                         "error",
-                        parsedResponse.message,
-                        parsedResponse.code,
+                        ErrorCode.getMessage(response.code),
+                        response.code.toString(),
                         null,
                         null,
                         0
                     )
                     continuation.resume(errorResponse)
                 }
+
             }
         })
     }
 
     suspend fun serverRequestGetReferrerAsync(
-        context: Context,
-        endpoint: String
+        context: Context, endpoint: String
     ): ApiResponse<SubscriberData> = suspendCoroutine { continuation ->
         val urlBuilder = (PrefHelper.aPIBaseUrl + endpoint).toHttpUrlOrNull()?.newBuilder()
         urlBuilder?.addQueryParameter("os_type", DeviceInfo(context).getOperatingSystem())
@@ -479,11 +501,10 @@ class ReferralNetworkClient {
         urlBuilder?.addQueryParameter("ip_address", DeviceInfo(context).getIpAddress())
         urlBuilder?.addQueryParameter("screen_size", DeviceInfo(context).getDeviceScreenSize())
         val url = urlBuilder?.build()?.toString()
-        val requestBuilder =
-            Request.Builder().url(url!!)
-                .addHeader("Authorization", PrefHelper(context).rhAccessTokenKey!!)
-                .addHeader("Accept", "application/vnd.referralhero.v1")
-                .addHeader("Content-Type", "application/json").get()
+        val requestBuilder = Request.Builder().url(url!!)
+            .addHeader("Authorization", PrefHelper(context).rhAccessTokenKey!!)
+            .addHeader("Accept", "application/vnd.referralhero.v1")
+            .addHeader("Content-Type", "application/json").get()
 
         val request = requestBuilder.build()
 
@@ -493,40 +514,45 @@ class ReferralNetworkClient {
             override fun onFailure(call: Call, e: IOException) {
                 if (continuation.context.isActive) {
                     val errorResponse = ApiResponse<SubscriberData>(
-                        "error",
-                        e.message,
-                        "0",
-                        null,
-                        null,
-                        0
+                        "error", e.message, "0", null, null, 0
                     )
                     continuation.resume(errorResponse)
                 }
             }
 
             override fun onResponse(call: Call, response: Response) {
-                val responseString = response.body?.string()
-                com.sdk.referral.logger.Logger().debug("API", responseString)
-                val parsedResponse: ApiResponse<SubscriberData> = Gson().fromJson(
-                    responseString,
-                    object : TypeToken<ApiResponse<SubscriberData>>() {}.type
-                )
 
-                if (continuation.context.isActive) {
-                    if (response.isSuccessful) {
-                        continuation.resume(parsedResponse)
-                    } else {
-                        val errorResponse = ApiResponse<SubscriberData>(
-                            "error",
-                            parsedResponse.message,
-                            parsedResponse.code,
-                            null,
-                            null,
-                            0
-                        )
-                        continuation.resume(errorResponse)
+                if (response.code == 200 || response.code == 403 || response.code == 401 || response.code == 400) {
+                    val responseString = response.body?.string()
+                    com.sdk.referral.logger.Logger().debug("API", responseString)
+                    val parsedResponse: ApiResponse<SubscriberData> = Gson().fromJson(
+                        responseString, object : TypeToken<ApiResponse<SubscriberData>>() {}.type
+                    )
+
+                    if (continuation.context.isActive) {
+                        if (response.isSuccessful) {
+                            continuation.resume(parsedResponse)
+                        } else {
+                            val errorResponse = ApiResponse<SubscriberData>(
+                                "error", parsedResponse.message, parsedResponse.code, null, null, 0
+                            )
+                            continuation.resume(errorResponse)
+                        }
                     }
+                } else {
+                    val errorResponse = ApiResponse<SubscriberData>(
+                        "error",
+                        ErrorCode.getMessage(response.code),
+                        response.code.toString(),
+                        null,
+                        null,
+                        0
+                    )
+                    continuation.resume(errorResponse)
+
                 }
+
+
             }
         })
     }

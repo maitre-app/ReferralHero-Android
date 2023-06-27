@@ -82,7 +82,7 @@ class DeviceInfo(private val context: Context) {
                 }
             }
         }
-        return null
+        return ""
     }
 
     fun getDeviceScreenSize(): String? {
