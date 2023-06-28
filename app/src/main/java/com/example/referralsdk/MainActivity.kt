@@ -8,11 +8,13 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.gson.Gson
 import com.sdk.referral.RH
+import com.sdk.referral.RH.Companion.instance
+import com.sdk.referral.RH.RHReferralCallBackListener
 import com.sdk.referral.model.*
 import com.sdk.referral.utils.DeviceInfo
 
 
-class MainActivity : AppCompatActivity(), RH.RHReferralCallBackListener, View.OnClickListener,
+class MainActivity : AppCompatActivity(), RHReferralCallBackListener, View.OnClickListener,
     RH.RHMyReferralCallBackListener, RH.RHLeaderBoardReferralCallBackListener,
     RH.RHRewardCallBackListener {
 
@@ -75,7 +77,7 @@ class MainActivity : AppCompatActivity(), RH.RHReferralCallBackListener, View.On
 
     override fun onClick(v: View) {
         val referralParams = ReferralParams()
-        val rh = RH.instance
+        val rh = instance
 
         when (v.id) {
             R.id.btnAdd -> {
@@ -91,8 +93,8 @@ class MainActivity : AppCompatActivity(), RH.RHReferralCallBackListener, View.On
                 rh?.formSubmit(this, referralParams)
                 rh?.prefHelper?.rHReferralLink
             }
-            R.id.btnGet -> RH.instance?.getSubscriber(this)
-            R.id.btnDelete -> RH.instance?.deleteSubscriber(this)
+            R.id.btnGet -> instance?.getSubscriber(this)
+            R.id.btnDelete -> instance?.deleteSubscriber(this)
             R.id.btnUpdate -> {
                 referralParams.name = "AndiDevOps"
                 rh?.updateSubscriber(this, referralParams)
@@ -106,9 +108,9 @@ class MainActivity : AppCompatActivity(), RH.RHReferralCallBackListener, View.On
                 referralParams.social = "Whatsapp"
                 rh?.captureShare(this, referralParams)
             }
-            R.id.btnGetReferral -> RH.instance?.getMyReferrals(this)
-            R.id.btnGetCampaign -> RH.instance?.getLeaderboard(this)
-            R.id.btnConfirm -> RH.instance?.confirmReferral(this)
+            R.id.btnGetReferral -> instance?.getMyReferrals(this)
+            R.id.btnGetCampaign -> instance?.getLeaderboard(this)
+            R.id.btnConfirm -> instance?.confirmReferral(this)
             R.id.btnPending -> {
                 referralParams.email = "Jayden@gmail.com"
                 referralParams.name = "AndiDev"
@@ -127,6 +129,7 @@ class MainActivity : AppCompatActivity(), RH.RHReferralCallBackListener, View.On
             }
             R.id.btnReferrer -> {
                 rh?.getReferrer(this)
+
             }
         }
 

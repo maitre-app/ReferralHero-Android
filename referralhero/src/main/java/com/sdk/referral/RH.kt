@@ -329,9 +329,6 @@ class RH(var context_: Context) {
                         "${prefHelper.rhCampaignID}/subscribers/referrer",
                     )
                     if (response.status == "ok") {
-                        /*  response.data?.let {
-                              prefHelper.rHSubscriberID = it.id
-                          }*/
                         registerSubscriberCallback?.onSuccessCallback(response)
                     } else {
                         registerSubscriberCallback?.onFailureCallback(response)
