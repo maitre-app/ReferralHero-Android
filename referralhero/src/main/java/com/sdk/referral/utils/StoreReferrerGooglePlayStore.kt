@@ -4,6 +4,8 @@ import android.content.Context
 import android.os.RemoteException
 import com.android.installreferrer.api.InstallReferrerClient
 import com.android.installreferrer.api.InstallReferrerStateListener
+import com.google.gson.Gson
+import com.sdk.referral.logger.Logger
 import java.util.*
 
 object StoreReferrerGooglePlayStore {
@@ -20,12 +22,14 @@ object StoreReferrerGooglePlayStore {
         val referrerClient = InstallReferrerClient.newBuilder(context).build()
         referrerClient.startConnection(object : InstallReferrerStateListener {
             override fun onInstallReferrerSetupFinished(responseCode: Int) {
-                PrefHelper.Debug("Google Play onInstallReferrerSetupFinished, responseCode = $responseCode")
+                Logger().warnInProduction("Google Play onInstallReferrerSetupFinished, responseCode = $responseCode")
                 when (responseCode) {
                     InstallReferrerClient.InstallReferrerResponse.OK -> try {
                         val response = referrerClient.installReferrer
                         if (response != null) {
+                            Logger().warn("Referrer Data:  ${Gson().toJson(response)}")
                             rawReferrer = response.installReferrer
+                            Logger().warn("Referrer Data:  ${rawReferrer}")
                             clickTimestamp = response.referrerClickTimestampSeconds
                             installBeginTimestamp = response.installBeginTimestampSeconds
                         }
@@ -38,14 +42,14 @@ object StoreReferrerGooglePlayStore {
                             referrerClient.javaClass.name
                         )
                     } catch (ex: RemoteException) {
-                        PrefHelper.Debug("onInstallReferrerSetupFinished() Remote Exception: " + ex.message)
+                        Logger().warnInProduction("onInstallReferrerSetupFinished() Remote Exception: " + ex.message)
                         onReferrerClientError()
                     } catch (ex: Exception) {
-                        PrefHelper.Debug("onInstallReferrerSetupFinished() Exception: " + ex.message)
+                        Logger().warnInProduction("onInstallReferrerSetupFinished() Exception: " + ex.message)
                         onReferrerClientError()
                     }
                     InstallReferrerClient.InstallReferrerResponse.FEATURE_NOT_SUPPORTED, InstallReferrerClient.InstallReferrerResponse.SERVICE_UNAVAILABLE, InstallReferrerClient.InstallReferrerResponse.DEVELOPER_ERROR, InstallReferrerClient.InstallReferrerResponse.SERVICE_DISCONNECTED -> {
-                        PrefHelper.Debug("responseCode: $responseCode")
+                        Logger().warnInProduction("responseCode: $responseCode")
                         // Play Store service is not connected now - potentially transient state.
                         onReferrerClientError()
                     }
@@ -57,12 +61,12 @@ object StoreReferrerGooglePlayStore {
                 // to the service will remain active, and you will receive a call to onInstallReferrerSetupFinished(int)
                 // when install referrer service is next running and setup is complete."
                 // https://developer.android.com/reference/com/android/installreferrer/api/InstallReferrerStateListener.html#oninstallreferrerservicedisconnected
-                PrefHelper.Debug("onInstallReferrerServiceDisconnected()")
+                Logger().warnInProduction("onInstallReferrerServiceDisconnected()")
             }
         })
         Timer().schedule(object : TimerTask() {
             override fun run() {
-                PrefHelper.Debug("Google Store Referrer fetch lock released by timer")
+                Logger().warnInProduction("Google Store Referrer fetch lock released by timer")
                 reportInstallReferrer()
             }
         }, 1500)
@@ -88,7 +92,7 @@ object StoreReferrerGooglePlayStore {
         clientName: String
     ) {
         PrefHelper.getInstance(context!!)?.appStoreReferrer = rawReferrerString
-        PrefHelper.Debug("$clientName onReferrerClientFinished() Referrer: $rawReferrerString Click Timestamp: $clickTS Install Timestamp: $InstallBeginTS")
+        Logger().warnInProduction("$clientName onReferrerClientFinished() Referrer: $rawReferrerString Click Timestamp: $clickTS Install Timestamp: $InstallBeginTS")
         reportInstallReferrer()
     }
 
