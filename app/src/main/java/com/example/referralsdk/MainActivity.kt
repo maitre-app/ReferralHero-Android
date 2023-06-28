@@ -12,7 +12,6 @@ import com.sdk.referral.RH.Companion.instance
 import com.sdk.referral.RH.RHReferralCallBackListener
 import com.sdk.referral.model.*
 import com.sdk.referral.utils.DeviceInfo
-import java.util.*
 
 
 class MainActivity : AppCompatActivity(), RHReferralCallBackListener, View.OnClickListener,
@@ -65,7 +64,6 @@ class MainActivity : AppCompatActivity(), RHReferralCallBackListener, View.OnCli
         btnReffer.setOnClickListener(this)
         btnDelete.setOnClickListener(this)
         btnUpdate.setOnClickListener(this)
-        Log.e("Response", rh?.deviceInfo?.getPublicIPAddress().toString())
 
 
     }
