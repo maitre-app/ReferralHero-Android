@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:name="com.example.referralsdk.MyApp"
@@ -45,11 +46,11 @@
         </receiver>
 
         <meta-data
-            android:name="com.rh.sdk.ApiKey"
+            android:name="com.sdk.referral.token"
             android:value="00f9e163fd6d54b18631fd255a91ce06b959bd5c" />
 
         <meta-data
-            android:name="com.rh.sdk.uuid"
+            android:name="com.sdk.referral.uuid"
             android:value="MF4345c63888" />
     </application>
 

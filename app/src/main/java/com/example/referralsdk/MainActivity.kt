@@ -12,6 +12,7 @@ import com.sdk.referral.RH.Companion.instance
 import com.sdk.referral.RH.RHReferralCallBackListener
 import com.sdk.referral.model.*
 import com.sdk.referral.utils.DeviceInfo
+import java.util.*
 
 
 class MainActivity : AppCompatActivity(), RHReferralCallBackListener, View.OnClickListener,
@@ -32,6 +33,7 @@ class MainActivity : AppCompatActivity(), RHReferralCallBackListener, View.OnCli
     lateinit var btnReward: Button
     lateinit var btnReffer: Button
     lateinit var txtReponse: TextView
+    private val rh = instance
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -63,6 +65,9 @@ class MainActivity : AppCompatActivity(), RHReferralCallBackListener, View.OnCli
         btnReffer.setOnClickListener(this)
         btnDelete.setOnClickListener(this)
         btnUpdate.setOnClickListener(this)
+        Log.e("Response", rh?.deviceInfo?.getPublicIPAddress().toString())
+
+
     }
 
     override fun onFailureCallback(response: ApiResponse<SubscriberData>?) {
@@ -77,7 +82,7 @@ class MainActivity : AppCompatActivity(), RHReferralCallBackListener, View.OnCli
 
     override fun onClick(v: View) {
         val referralParams = ReferralParams()
-        val rh = instance
+
 
         when (v.id) {
             R.id.btnAdd -> {
@@ -86,7 +91,7 @@ class MainActivity : AppCompatActivity(), RHReferralCallBackListener, View.OnCli
                 referralParams.name = "Jayden"
                 referralParams.referrer = ""
                 referralParams.uuid = "MFdea3239f91"
-                // referralParams.ip_address = rh?.deviceInfo?.getIpAddress()
+                referralParams.ip_address = rh?.deviceInfo?.getIpAddress()
                 referralParams.device = rh?.deviceInfo?.getDeviceModel()
                 referralParams.os_type = rh?.deviceInfo?.getOperatingSystem()
                 referralParams.screen_size = rh?.deviceInfo?.getDeviceScreenSize()

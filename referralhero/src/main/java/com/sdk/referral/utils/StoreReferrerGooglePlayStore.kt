@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.RemoteException
 import com.android.installreferrer.api.InstallReferrerClient
 import com.android.installreferrer.api.InstallReferrerStateListener
-import com.google.gson.Gson
 import com.sdk.referral.logger.Logger
 import java.util.*
 
@@ -27,9 +26,7 @@ object StoreReferrerGooglePlayStore {
                     InstallReferrerClient.InstallReferrerResponse.OK -> try {
                         val response = referrerClient.installReferrer
                         if (response != null) {
-                            Logger().warn("Referrer Data:  ${Gson().toJson(response.installReferrer)}")
                             rawReferrer = response.installReferrer
-                            Logger().warn("Referrer Data:  ${rawReferrer}")
                             clickTimestamp = response.referrerClickTimestampSeconds
                             installBeginTimestamp = response.installBeginTimestampSeconds
                         }
@@ -93,10 +90,8 @@ object StoreReferrerGooglePlayStore {
     ) {
 
         if (!rawReferrerString.equals("utm_source=google-play&utm_medium=organic", true)) {
-            Logger().warnInProduction("$rawReferrerString  if Condition is True")
             PrefHelper.getInstance(context!!)?.appStoreReferrer = rawReferrerString
         } else {
-            Logger().warnInProduction("$rawReferrerString  else Condition is True")
             PrefHelper.getInstance(context!!)?.appStoreReferrer = "NO_STRING_VALUE"
         }
 

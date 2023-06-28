@@ -12,7 +12,7 @@ object RHUtil {
      */
     fun readRhKey(context: Context): String {
         var RHKey: String? = null
-        val metaDataKey = "com.sdk.referral.RhKey"
+        val metaDataKey = "com.sdk.referral.token"
         // manifest overrides string resources
         try {
             val ai = context.packageManager.getApplicationInfo(

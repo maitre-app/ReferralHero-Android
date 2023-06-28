@@ -2,9 +2,11 @@ package com.sdk.referral.utils
 
 import android.content.Context
 import android.os.Build
+import android.os.StrictMode
 import android.util.DisplayMetrics
-import java.net.InetAddress
-import java.net.NetworkInterface
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.net.URL
 
 /**
  *
@@ -68,22 +70,31 @@ class DeviceInfo(private val context: Context) {
      * **/
 
     fun getIpAddress(): String? {
-        val networkInterfaces = NetworkInterface.getNetworkInterfaces()
-        while (networkInterfaces.hasMoreElements()) {
-            val networkInterface = networkInterfaces.nextElement()
-            val addresses = networkInterface.inetAddresses
-            while (addresses.hasMoreElements()) {
-                val address = addresses.nextElement()
-                if (!address.isLoopbackAddress && address is InetAddress && address.hostAddress?.contains(
-                        ":"
-                    )?.not() == true
-                ) {
-                    return address.hostAddress
-                }
+        var ipAddress: String? = null
+        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
+        StrictMode.setThreadPolicy(policy)
+        try {
+            val url = URL("https://api.ipify.org/")
+            val connection = url.openConnection()
+            val reader = BufferedReader(InputStreamReader(connection.getInputStream()))
+
+            // Read the response from the API
+            val response = StringBuilder()
+            var line: String?
+            while (reader.readLine().also { line = it } != null) {
+                response.append(line)
             }
+            reader.close()
+
+            // Parse the response to get the IP address
+            ipAddress = response.toString()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
-        return ""
+
+        return ipAddress
     }
+
 
     fun getDeviceScreenSize(): String? {
         val displaymetrics: DisplayMetrics = context.resources.displayMetrics
