@@ -48,13 +48,11 @@ class RH(var context_: Context) {
         registerSubscriberCallback = callback
         val mainCoroutineScope = CoroutineScope(Dispatchers.Main)
 
-        if (!prefHelper.appStoreReferrer.toString().contains("utm_source", true)) {
             if (prefHelper.appStoreReferrer?.trim()?.isNotEmpty() == true) {
                 if (!prefHelper.appStoreReferrer.toString()
                         .equals("NO_STRING_VALUE", true)
                 ) referralParams.referrer = prefHelper.appStoreReferrer
             }
-        }
         try {
             mainCoroutineScope.launch {
                 try {

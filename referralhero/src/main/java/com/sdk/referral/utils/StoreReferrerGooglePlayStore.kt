@@ -27,7 +27,7 @@ object StoreReferrerGooglePlayStore {
                     InstallReferrerClient.InstallReferrerResponse.OK -> try {
                         val response = referrerClient.installReferrer
                         if (response != null) {
-                            Logger().warn("Referrer Data:  ${Gson().toJson(response)}")
+                            Logger().warn("Referrer Data:  ${Gson().toJson(response.installReferrer)}")
                             rawReferrer = response.installReferrer
                             Logger().warn("Referrer Data:  ${rawReferrer}")
                             clickTimestamp = response.referrerClickTimestampSeconds
@@ -92,14 +92,12 @@ object StoreReferrerGooglePlayStore {
         clientName: String
     ) {
 
-        if (rawReferrerString?.contains(
-                "utm_source=google-play&utm_medium=organic",
-                true
-            ) == true
-        ) {
-            PrefHelper.getInstance(context!!)?.appStoreReferrer = "NO_STRING_VALUE"
-        } else {
+        if (!rawReferrerString.equals("utm_source=google-play&utm_medium=organic", true)) {
+            Logger().warnInProduction("$rawReferrerString  if Condition is True")
             PrefHelper.getInstance(context!!)?.appStoreReferrer = rawReferrerString
+        } else {
+            Logger().warnInProduction("$rawReferrerString  else Condition is True")
+            PrefHelper.getInstance(context!!)?.appStoreReferrer = "NO_STRING_VALUE"
         }
 
         Logger().warnInProduction("$clientName onReferrerClientFinished() Referrer: $rawReferrerString Click Timestamp: $clickTS Install Timestamp: $InstallBeginTS")

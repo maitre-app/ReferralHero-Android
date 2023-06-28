@@ -57,7 +57,7 @@ publishing {
         register<MavenPublication>("release") {
             groupId = "com.github.maitre-app"
             artifactId = "ReferralHero-Android"
-            version = "0.0.9"
+            version = "1.0.0"
             afterEvaluate {
                 from(components["release"])
             }
