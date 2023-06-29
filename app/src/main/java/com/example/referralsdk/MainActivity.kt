@@ -64,8 +64,6 @@ class MainActivity : AppCompatActivity(), RHReferralCallBackListener, View.OnCli
         btnReffer.setOnClickListener(this)
         btnDelete.setOnClickListener(this)
         btnUpdate.setOnClickListener(this)
-
-
     }
 
     override fun onFailureCallback(response: ApiResponse<SubscriberData>?) {

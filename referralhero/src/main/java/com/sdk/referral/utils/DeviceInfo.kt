@@ -2,11 +2,9 @@ package com.sdk.referral.utils
 
 import android.content.Context
 import android.os.Build
-import android.os.StrictMode
 import android.util.DisplayMetrics
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.net.URL
+import java.net.Inet4Address
+import java.net.NetworkInterface
 
 /**
  *
@@ -70,29 +68,22 @@ class DeviceInfo(private val context: Context) {
      * **/
 
     fun getIpAddress(): String? {
-        var ipAddress: String? = null
-        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-        StrictMode.setThreadPolicy(policy)
         try {
-            val url = URL("https://api.ipify.org/")
-            val connection = url.openConnection()
-            val reader = BufferedReader(InputStreamReader(connection.getInputStream()))
-
-            // Read the response from the API
-            val response = StringBuilder()
-            var line: String?
-            while (reader.readLine().also { line = it } != null) {
-                response.append(line)
+            val interfaces = NetworkInterface.getNetworkInterfaces()
+            while (interfaces.hasMoreElements()) {
+                val networkInterface = interfaces.nextElement()
+                val addresses = networkInterface.inetAddresses
+                while (addresses.hasMoreElements()) {
+                    val address = addresses.nextElement()
+                    if (!address.isLoopbackAddress && address is Inet4Address) {
+                        return address.hostAddress
+                    }
+                }
             }
-            reader.close()
-
-            // Parse the response to get the IP address
-            ipAddress = response.toString()
         } catch (e: Exception) {
             e.printStackTrace()
         }
-
-        return ipAddress
+        return ""
     }
 
 
