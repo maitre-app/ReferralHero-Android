@@ -92,7 +92,7 @@ object StoreReferrerGooglePlayStore {
         if (!rawReferrerString.equals("utm_source=google-play&utm_medium=organic", true)) {
             PrefHelper.getInstance(context!!)?.appStoreReferrer = rawReferrerString
         } else {
-            PrefHelper.getInstance(context!!)?.appStoreReferrer = "NO_STRING_VALUE"
+            PrefHelper.getInstance(context!!)?.appStoreReferrer = ""
         }
 
         Logger().warnInProduction("$clientName onReferrerClientFinished() Referrer: $rawReferrerString Click Timestamp: $clickTS Install Timestamp: $InstallBeginTS")

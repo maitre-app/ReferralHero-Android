@@ -49,9 +49,8 @@ class RH(var context_: Context) {
         val mainCoroutineScope = CoroutineScope(Dispatchers.Main)
 
             if (prefHelper.appStoreReferrer?.trim()?.isNotEmpty() == true) {
-                if (!prefHelper.appStoreReferrer.toString()
-                        .equals("NO_STRING_VALUE", true)
-                ) referralParams.referrer = prefHelper.appStoreReferrer
+                if (!prefHelper.appStoreReferrer.toString().equals("NO_STRING_VALUE", true))
+                    referralParams.referrer = prefHelper.appStoreReferrer
             }
         try {
             mainCoroutineScope.launch {
