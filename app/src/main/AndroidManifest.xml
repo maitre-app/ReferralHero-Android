@@ -47,11 +47,11 @@
 
         <meta-data
             android:name="com.sdk.referral.token"
-            android:value="00f9e163fd6d54b18631fd255a91ce06b959bd5c" />
+            android:value="aff8792c7bccffd9165639e8be281bc4c51e3a11" />
 
         <meta-data
             android:name="com.sdk.referral.uuid"
-            android:value="MF4345c63888" />
+            android:value="MF69b9014e1f" />
     </application>
 
 </manifest>

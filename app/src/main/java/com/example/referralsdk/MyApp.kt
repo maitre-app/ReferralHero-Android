@@ -6,6 +6,6 @@ import com.sdk.referral.RH
 class MyApp : Application() {
     override fun onCreate() {
         super.onCreate()
-        RH.initRHSDK(this, "00f9e163fd6d54b18631fd255a91ce06b959bd5c", "MF4345c63888")
+        RH.initRHSDK(this, "aff8792c7bccffd9165639e8be281bc4c51e3a11", "MF69b9014e1f")
     }
 }

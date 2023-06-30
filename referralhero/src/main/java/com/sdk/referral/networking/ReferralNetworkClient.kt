@@ -558,7 +558,7 @@ class ReferralNetworkClient {
     }
 
     suspend fun getIpAddressAsync(mContext: Context): String = suspendCoroutine { continuation ->
-        val url = "https://api64.ipify.org/"
+        val url = "https://api.ipify.org/"
         val request = Request.Builder()
             .url(url)
             .build()

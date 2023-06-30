@@ -64,6 +64,7 @@ class MainActivity : AppCompatActivity(), RHReferralCallBackListener, View.OnCli
         btnReffer.setOnClickListener(this)
         btnDelete.setOnClickListener(this)
         btnUpdate.setOnClickListener(this)
+        Log.e("Response", rh?.deviceInfo?.getIpAddress().toString())
     }
 
     override fun onFailureCallback(response: ApiResponse<SubscriberData>?) {
@@ -82,17 +83,18 @@ class MainActivity : AppCompatActivity(), RHReferralCallBackListener, View.OnCli
 
         when (v.id) {
             R.id.btnAdd -> {
-                referralParams.email = "jayden@aistechnolabs.org"
+                referralParams.email = "Jaspalsinh@aistechnolabs.org"
                 referralParams.domain = "https://wongazoma.aistechnolabs.info/action"
-                referralParams.name = "Jayden"
+                referralParams.name = "Jaspalsinh Gohil"
                 referralParams.referrer = ""
-                referralParams.uuid = "MFdea3239f91"
+                referralParams.uuid = "MF69b9014e1f"
                 referralParams.ip_address = rh?.deviceInfo?.getIpAddress()
                 referralParams.device = rh?.deviceInfo?.getDeviceModel()
                 referralParams.os_type = rh?.deviceInfo?.getOperatingSystem()
                 referralParams.screen_size = rh?.deviceInfo?.getDeviceScreenSize()
+
+                Log.e("params", Gson().toJson(referralParams))
                 rh?.formSubmit(this, referralParams)
-                rh?.prefHelper?.rHReferralLink
             }
             R.id.btnGet -> instance?.getSubscriber(this)
             R.id.btnDelete -> instance?.deleteSubscriber(this)
