@@ -557,4 +557,34 @@ class ReferralNetworkClient {
         })
     }
 
+    suspend fun getIpAddressAsync(mContext: Context): String = suspendCoroutine { continuation ->
+        val url = "https://api64.ipify.org/"
+        val request = Request.Builder()
+            .url(url)
+            .build()
+        val client = OkHttpClient()
+        val call = client.newCall(request)
+        call.enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                if (continuation.context.isActive) {
+                    continuation.resume("")
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (response.isSuccessful) {
+                    val ipAddress = response.body?.string() ?: ""
+                    com.sdk.referral.logger.Logger().warn("IpAddress $ipAddress")
+                    PrefHelper(mContext).setString("RHSDKIP", ipAddress)
+                    if (continuation.context.isActive) {
+                        continuation.resume(ipAddress)
+                    }
+                } else {
+                    if (continuation.context.isActive) {
+                        continuation.resume("")
+                    }
+                }
+            }
+        })
+    }
 }

@@ -471,12 +471,28 @@ class RH(var context_: Context) {
     }
 
     // Method to fetch install referrer
-    fun fetchInstallReferrer(context: Context?) {
+    private fun fetchInstallReferrer(context: Context?) {
         fetch(context, object : IGoogleInstallReferrerEvents {
             override fun onGoogleInstallReferrerEventsFinished() {
                 Logger().warn("Referrer Data:  ${RHReferral_?.prefHelper?.appStoreReferrer}")
             }
         })
+    }
+
+    private fun getPublicIP(): String? {
+        var ipAddress = ""
+        val mainCoroutineScope = CoroutineScope(Dispatchers.Main)
+        try {
+            mainCoroutineScope.launch {
+                ipAddress = ReferralNetworkClient().getIpAddressAsync(context_)
+                RHReferral_?.prefHelper?.setString("RHSDKIP", ipAddress)
+                Logger().warn("Ip Address:  ${RHReferral_?.prefHelper?.getString("RHSDKIP")}")
+            }
+        } catch (exception: Exception) {
+            Logger().error(exception.toString())
+        }
+        return ipAddress
+
     }
 
 
@@ -521,6 +537,7 @@ class RH(var context_: Context) {
                 if (RHReferral_ == null) {
                     PrefHelper.Debug("RH instance is not created yet. Make sure you call getAutoInstance(Context).")
                 } else {
+                    RHReferral_?.getPublicIP()
                     RHReferral_?.prefHelper?.rhAccessTokenKey = RHReferral_?.context_?.let {
                         RHUtil.readRhKey(
                             it
@@ -540,6 +557,7 @@ class RH(var context_: Context) {
         @Synchronized
         fun initRHSDK(context: Context, ApiToken: String?, RHuuid: String?): RH? {
             if (RHReferral_ != null) {
+                RHReferral_?.getPublicIP()
                 Logger().warn("Warning, attempted to reinitialize RH SDK singleton!")
                 return RHReferral_
             }
@@ -556,6 +574,7 @@ class RH(var context_: Context) {
             } else {
                 RHReferral_?.prefHelper?.setRHCampaignID(RHuuid)
             }
+            RHReferral_?.getPublicIP()
             RHReferral_?.fetchInstallReferrer(context)
             return RHReferral_
         }

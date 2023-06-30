@@ -3,8 +3,6 @@ package com.sdk.referral.utils
 import android.content.Context
 import android.os.Build
 import android.util.DisplayMetrics
-import java.net.Inet4Address
-import java.net.NetworkInterface
 
 /**
  *
@@ -16,6 +14,7 @@ import java.net.NetworkInterface
 class DeviceInfo(private val context: Context) {
 
 
+    private var publicIPAddress: String = ""
     //getDeviceModel(): Returns the model of the device (e.g., "Pixel 5").
 
     fun getDeviceModel(): String {
@@ -68,22 +67,10 @@ class DeviceInfo(private val context: Context) {
      * **/
 
     fun getIpAddress(): String? {
-        try {
-            val interfaces = NetworkInterface.getNetworkInterfaces()
-            while (interfaces.hasMoreElements()) {
-                val networkInterface = interfaces.nextElement()
-                val addresses = networkInterface.inetAddresses
-                while (addresses.hasMoreElements()) {
-                    val address = addresses.nextElement()
-                    if (!address.isLoopbackAddress && address is Inet4Address) {
-                        return address.hostAddress
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        return ""
+        return if (publicIPAddress.isNullOrEmpty())
+            PrefHelper(context).getString("RHSDKIP")
+        else
+            publicIPAddress
     }
 
 
