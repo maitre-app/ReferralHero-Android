@@ -125,7 +125,14 @@ class PrefHelper(context: Context) {
      * @param referrer App store install referrer string
      */
     var appStoreReferrer: String?
-        get() = getString(KEY_GOOGLE_PLAY_INSTALL_REFERRER_EXTRA)
+        get() {
+            return if (getString(KEY_GOOGLE_PLAY_INSTALL_REFERRER_EXTRA).toString()
+                    .equals("NO_STRING_VALUE", true)
+            )
+                ""
+            else
+                getString(KEY_GOOGLE_PLAY_INSTALL_REFERRER_EXTRA)
+        }
         set(referrer) {
             setString(KEY_GOOGLE_PLAY_INSTALL_REFERRER_EXTRA, referrer)
         }

@@ -49,12 +49,17 @@ class RH(var context_: Context) {
         val mainCoroutineScope = CoroutineScope(Dispatchers.Main)
 
         if (prefHelper.appStoreReferrer?.trim()?.isNotEmpty() == true) {
-            if (!prefHelper.appStoreReferrer.toString().equals("NO_STRING_VALUE", true))
+            if (!prefHelper.appStoreReferrer.toString().trim().equals("NO_STRING_VALUE", true))
                 referralParams.referrer = prefHelper.appStoreReferrer
         }
 
-        if (referralParams.ip_address.isNullOrEmpty())
-            referralParams.ip_address = deviceInfo.getIpAddress()
+        if (referralParams.ip_address.isNullOrEmpty()) {
+            if (!prefHelper.getString("RHSDKIP").toString().equals("NO_STRING_VALUE", true))
+                referralParams.ip_address = prefHelper.getString("RHSDKIP")
+            else
+                referralParams.ip_address = deviceInfo.getIpAddress()
+        }
+
         try {
             mainCoroutineScope.launch {
                 try {
