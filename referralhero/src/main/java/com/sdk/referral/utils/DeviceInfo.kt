@@ -21,6 +21,10 @@ class DeviceInfo(private val context: Context) {
         return Build.MODEL
     }
 
+    fun getDeviceType(): String {
+        return "android"
+    }
+
     //getDeviceManufacturer(): Returns the manufacturer of the device (e.g., "Google").
     fun getDeviceManufacturer(): String {
         return Build.MANUFACTURER
@@ -67,10 +71,9 @@ class DeviceInfo(private val context: Context) {
      * **/
 
     fun getIpAddress(): String? {
-        return if (publicIPAddress.isNullOrEmpty())
-            PrefHelper(context).getString("RHSDKIP")
-        else
-            publicIPAddress
+
+        return PrefHelper(context).getString("RHSDKIP")
+
     }
 
 

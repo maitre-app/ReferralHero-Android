@@ -60,6 +60,8 @@ class RH(var context_: Context) {
                 referralParams.ip_address = deviceInfo.getIpAddress()
         }
 
+        //need to pass "Android" in device parameter for android devices and "IPhone" for IOS Devices it required value should be only this like /mobile|android|iphone|ipad|ipod|blackberry|iemobile|opera mini/
+        referralParams.device = "android"
         try {
             mainCoroutineScope.launch {
                 try {
