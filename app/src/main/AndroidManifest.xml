@@ -51,7 +51,7 @@
 
         <meta-data
             android:name="com.sdk.referral.uuid"
-            android:value="MF69b9014e1f" />
+            android:value="MF67c1950f09" />
     </application>
 
 </manifest>

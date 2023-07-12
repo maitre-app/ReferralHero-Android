@@ -3,7 +3,7 @@ package com.sdk.referral
 import android.content.Context
 import android.text.TextUtils
 import com.sdk.referral.logger.Logger
-import com.sdk.referral.model.*
+import com.sdk.referral.model.ReferralParams
 import com.sdk.referral.networking.ReferralNetworkClient
 import com.sdk.referral.utils.DeviceInfo
 import com.sdk.referral.utils.PrefHelper
@@ -13,6 +13,7 @@ import com.sdk.referral.utils.StoreReferrerGooglePlayStore.fetch
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 
 /**
@@ -68,9 +69,14 @@ class RH(var context_: Context) {
                     val response = referralNetworkClient.serverRequestCallBackAsync(
                         context_, "${prefHelper.rhCampaignID}/subscribers/", referralParams
                     )
-                    if (response.status == "ok") {
-                        prefHelper.rHSubscriberID = response.data?.id
-                        prefHelper.rHReferralLink = response.data?.universal_link
+                    val jsonObject = JSONObject(response)
+                    val status = jsonObject.optString("status")
+                    if (status.equals("ok", true)) {
+                        val dataObject = jsonObject.optJSONObject("data")
+                        val id = dataObject?.optString("id", "")
+                        val universalLink = dataObject?.optString("universal_link", "")
+                        prefHelper.rHSubscriberID = id
+                        prefHelper.rHReferralLink = universalLink
                         registerSubscriberCallback?.onSuccessCallback(response)
                     } else {
                         prefHelper.rHReferralLink = PrefHelper.NO_STRING_VALUE
@@ -103,7 +109,9 @@ class RH(var context_: Context) {
                         context_,
                         "${prefHelper.rhCampaignID}/subscribers/${prefHelper.rHSubscriberID}"
                     )
-                    if (response.status == "ok") {
+                    val jsonObject = JSONObject(response)
+                    val status = jsonObject.optString("status")
+                    if (status.equals("ok", true)) {
                         registerSubscriberCallback?.onSuccessCallback(response)
                     } else {
                         registerSubscriberCallback?.onFailureCallback(response)
@@ -134,7 +142,9 @@ class RH(var context_: Context) {
                         context_,
                         "${prefHelper.rhCampaignID}/subscribers/${prefHelper.rHSubscriberID}"
                     )
-                    if (response.status == "ok") {
+                    val jsonObject = JSONObject(response)
+                    val status = jsonObject.optString("status")
+                    if (status.equals("ok", true)) {
                         prefHelper.clearPrefOnBranchKeyChange()
                         prefHelper.rHSubscriberID = ""
                         registerSubscriberCallback?.onSuccessCallback(response)
@@ -174,7 +184,9 @@ class RH(var context_: Context) {
                         "${prefHelper.rhCampaignID}/subscribers/${prefHelper.rHSubscriberID}",
                         referralParams
                     )
-                    if (response.status == "ok") {
+                    val jsonObject = JSONObject(response)
+                    val status = jsonObject.optString("status")
+                    if (status.equals("ok", true)) {
                         registerSubscriberCallback?.onSuccessCallback(response)
                     } else {
                         registerSubscriberCallback?.onFailureCallback(response)
@@ -211,7 +223,9 @@ class RH(var context_: Context) {
                         "${prefHelper.rhCampaignID}/subscribers/track_referral_conversion_event",
                         referralParams
                     )
-                    if (response.status == "ok") {
+                    val jsonObject = JSONObject(response)
+                    val status = jsonObject.optString("status")
+                    if (status.equals("ok", true)) {
                         registerSubscriberCallback?.onSuccessCallback(response)
                     } else {
                         registerSubscriberCallback?.onFailureCallback(response)
@@ -242,7 +256,9 @@ class RH(var context_: Context) {
                         "${prefHelper.rhCampaignID}/subscribers/${prefHelper.rHSubscriberID}/click_capture",
                         referralParams
                     )
-                    if (response.status == "ok") {
+                    val jsonObject = JSONObject(response)
+                    val status = jsonObject.optString("status")
+                    if (status.equals("ok", true)) {
                         registerSubscriberCallback?.onSuccessCallback(response)
                     } else {
                         registerSubscriberCallback?.onFailureCallback(response)
@@ -274,7 +290,9 @@ class RH(var context_: Context) {
                         "${prefHelper.rhCampaignID}/subscribers/pending_referral",
                         referralParams
                     )
-                    if (response.status == "ok") {
+                    val jsonObject = JSONObject(response)
+                    val status = jsonObject.optString("status")
+                    if (status.equals("ok", true)) {
                         registerSubscriberCallback?.onSuccessCallback(response)
                     } else {
                         registerSubscriberCallback?.onFailureCallback(response)
@@ -308,7 +326,9 @@ class RH(var context_: Context) {
                         "${prefHelper.rhCampaignID}/subscribers/organic_track_referral",
                         referralParams
                     )
-                    if (response.status == "ok") {
+                    val jsonObject = JSONObject(response)
+                    val status = jsonObject.optString("status")
+                    if (status.equals("ok", true)) {
                         registerSubscriberCallback?.onSuccessCallback(response)
                     } else {
                         registerSubscriberCallback?.onFailureCallback(response)
@@ -335,7 +355,9 @@ class RH(var context_: Context) {
                         context_,
                         "${prefHelper.rhCampaignID}/subscribers/referrer",
                     )
-                    if (response.status == "ok") {
+                    val jsonObject = JSONObject(response)
+                    val status = jsonObject.optString("status")
+                    if (status.equals("ok", true)) {
                         registerSubscriberCallback?.onSuccessCallback(response)
                     } else {
                         registerSubscriberCallback?.onFailureCallback(response)
@@ -367,7 +389,9 @@ class RH(var context_: Context) {
                         "${prefHelper.rhCampaignID}/subscribers/${prefHelper.rHSubscriberID}/confirm",
                         ReferralParams()
                     )
-                    if (response.status == "ok") {
+                    val jsonObject = JSONObject(response)
+                    val status = jsonObject.optString("status")
+                    if (status.equals("ok", true)) {
                         registerSubscriberCallback?.onSuccessCallback(response)
                     } else {
                         registerSubscriberCallback?.onFailureCallback(response)
@@ -403,7 +427,9 @@ class RH(var context_: Context) {
                         context_,
                         "${prefHelper.rhCampaignID}/subscribers/${prefHelper.rHSubscriberID}/referrals_data"
                     )
-                    if (response.status == "ok") {
+                    val jsonObject = JSONObject(response)
+                    val status = jsonObject.optString("status")
+                    if (status.equals("ok", true)) {
                         myReferralCallback?.onMyReferralSuccessCallback(response)
                     } else {
                         myReferralCallback?.onMyReferralFailureCallback(response)
@@ -438,7 +464,9 @@ class RH(var context_: Context) {
                         context_, "${prefHelper.rhCampaignID}/leaderboard"
                     )
                     // Handle the response
-                    if (response.status == "ok") {
+                    val jsonObject = JSONObject(response)
+                    val status = jsonObject.optString("status")
+                    if (status.equals("ok", true)) {
                         leaderBoardReferralCallback?.onLeaderBoardReferralSuccessCallback(response)
                     } else {
                         leaderBoardReferralCallback?.onLeaderBoardReferralFailureCallback(response)
@@ -462,7 +490,9 @@ class RH(var context_: Context) {
                         context_,
                         "${prefHelper.rhCampaignID}/subscribers/${prefHelper.rHSubscriberID}/rewards"
                     )
-                    if (response.status == "ok") {
+                    val jsonObject = JSONObject(response)
+                    val status = jsonObject.optString("status")
+                    if (status.equals("ok", true)) {
                         rewardCallback?.onRewardSuccessCallback(response)
                     } else {
                         prefHelper.rHReferralLink = PrefHelper.NO_STRING_VALUE
@@ -486,7 +516,7 @@ class RH(var context_: Context) {
         })
     }
 
-    private fun getPublicIP(): String? {
+    private fun getPublicIP(): String {
         var ipAddress = ""
         val mainCoroutineScope = CoroutineScope(Dispatchers.Main)
         try {
@@ -504,23 +534,23 @@ class RH(var context_: Context) {
 
 
     interface RHReferralCallBackListener {
-        fun onSuccessCallback(response: ApiResponse<SubscriberData>?)
-        fun onFailureCallback(response: ApiResponse<SubscriberData>?)
+        fun onSuccessCallback(response: String)
+        fun onFailureCallback(response: String)
     }
 
     interface RHMyReferralCallBackListener {
-        fun onMyReferralSuccessCallback(response: ApiResponse<ListSubscriberData>?)
-        fun onMyReferralFailureCallback(response: ApiResponse<ListSubscriberData>?)
+        fun onMyReferralSuccessCallback(response: String)
+        fun onMyReferralFailureCallback(response: String)
     }
 
     interface RHLeaderBoardReferralCallBackListener {
-        fun onLeaderBoardReferralSuccessCallback(response: ApiResponse<RankingDataContent>?)
-        fun onLeaderBoardReferralFailureCallback(response: ApiResponse<RankingDataContent>?)
+        fun onLeaderBoardReferralSuccessCallback(response: String)
+        fun onLeaderBoardReferralFailureCallback(response: String)
     }
 
     interface RHRewardCallBackListener {
-        fun onRewardSuccessCallback(response: ApiResponse<ListSubscriberData>?)
-        fun onRewardFailureCallback(response: ApiResponse<ListSubscriberData>?)
+        fun onRewardSuccessCallback(response: String)
+        fun onRewardFailureCallback(response: String)
     }
 
 

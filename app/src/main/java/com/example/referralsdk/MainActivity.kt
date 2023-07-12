@@ -10,7 +10,7 @@ import com.google.gson.Gson
 import com.sdk.referral.RH
 import com.sdk.referral.RH.Companion.instance
 import com.sdk.referral.RH.RHReferralCallBackListener
-import com.sdk.referral.model.*
+import com.sdk.referral.model.ReferralParams
 import com.sdk.referral.utils.DeviceInfo
 
 
@@ -67,14 +67,14 @@ class MainActivity : AppCompatActivity(), RHReferralCallBackListener, View.OnCli
         Log.e("Response", rh?.deviceInfo?.getIpAddress().toString())
     }
 
-    override fun onFailureCallback(response: ApiResponse<SubscriberData>?) {
+    override fun onFailureCallback(response: String) {
         Log.e("Response", Gson().toJson(response))
-        txtReponse.text = "Response : " + response?.status
+        txtReponse.text = "Response : " + Gson().toJson(response)
     }
 
-    override fun onSuccessCallback(response: ApiResponse<SubscriberData>?) {
-        Log.e("onSuccessCallback", Gson().toJson(response?.data))
-        txtReponse.text = "Response : " + response?.status
+    override fun onSuccessCallback(response: String) {
+        Log.e("onSuccessCallback", Gson().toJson(response))
+        txtReponse.text = "Response : " + Gson().toJson(response)
     }
 
     override fun onClick(v: View) {
@@ -87,7 +87,7 @@ class MainActivity : AppCompatActivity(), RHReferralCallBackListener, View.OnCli
                 referralParams.domain = "https://wongazoma.aistechnolabs.info/action"
                 referralParams.name = "Jaspalsinh Gohil"
                 referralParams.referrer = ""
-                referralParams.uuid = "MF69b9014e1f"
+                referralParams.uuid = "MF67c1950f09"
                 referralParams.ip_address = rh?.deviceInfo?.getIpAddress()
                 referralParams.device = rh?.deviceInfo?.getDeviceModel()
                 referralParams.os_type = rh?.deviceInfo?.getOperatingSystem()
@@ -138,28 +138,34 @@ class MainActivity : AppCompatActivity(), RHReferralCallBackListener, View.OnCli
 
     }
 
-    override fun onMyReferralSuccessCallback(response: ApiResponse<ListSubscriberData>?) {
+    override fun onMyReferralSuccessCallback(response: String) {
         Log.e("onMyReferralSuccess", Gson().toJson(response))
+        txtReponse.text = "Response : " + Gson().toJson(response)
     }
 
-    override fun onMyReferralFailureCallback(response: ApiResponse<ListSubscriberData>?) {
+    override fun onMyReferralFailureCallback(response: String) {
         Log.e("onMyReferralSuccess", Gson().toJson(response))
+        txtReponse.text = "Response : " + Gson().toJson(response)
     }
 
-    override fun onLeaderBoardReferralSuccessCallback(response: ApiResponse<RankingDataContent>?) {
+    override fun onLeaderBoardReferralSuccessCallback(response: String) {
         Log.e("onLeaderBoardSuccess", Gson().toJson(response))
+        txtReponse.text = "Response : " + Gson().toJson(response)
     }
 
-    override fun onLeaderBoardReferralFailureCallback(response: ApiResponse<RankingDataContent>?) {
+    override fun onLeaderBoardReferralFailureCallback(response: String) {
         Log.e("onLeaderBoardSuccess", Gson().toJson(response))
+        txtReponse.text = "Response : " + Gson().toJson(response)
     }
 
-    override fun onRewardSuccessCallback(response: ApiResponse<ListSubscriberData>?) {
+    override fun onRewardSuccessCallback(response: String) {
         Log.e("onRewardSuccess", Gson().toJson(response))
+        txtReponse.text = "Response : " + Gson().toJson(response)
     }
 
-    override fun onRewardFailureCallback(response: ApiResponse<ListSubscriberData>?) {
+    override fun onRewardFailureCallback(response: String) {
         Log.e("onRewardSuccess", Gson().toJson(response))
+        txtReponse.text = "Response : " + Gson().toJson(response)
     }
 
 

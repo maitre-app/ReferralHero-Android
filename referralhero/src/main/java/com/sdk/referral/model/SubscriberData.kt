@@ -25,6 +25,7 @@ data class SubscriberData(
     val host: String?,
     val source: String?,
     val device: String?,
+    val status: String?,
     val referral_link: String?,
     val universal_link: String?,
     val created_at: Long,
