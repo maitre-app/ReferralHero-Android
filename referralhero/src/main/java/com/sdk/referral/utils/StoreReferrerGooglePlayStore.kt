@@ -5,7 +5,8 @@ import android.os.RemoteException
 import com.android.installreferrer.api.InstallReferrerClient
 import com.android.installreferrer.api.InstallReferrerStateListener
 import com.sdk.referral.logger.Logger
-import java.util.*
+import java.util.Timer
+import java.util.TimerTask
 
 object StoreReferrerGooglePlayStore {
     private var callback_: IGoogleInstallReferrerEvents? = null
@@ -76,7 +77,7 @@ object StoreReferrerGooglePlayStore {
 
     fun reportInstallReferrer() {
         if (callback_ != null) {
-            callback_!!.onGoogleInstallReferrerEventsFinished()
+            callback_?.onGoogleInstallReferrerEventsFinished()
             callback_ = null
         }
     }

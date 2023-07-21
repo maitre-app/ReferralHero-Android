@@ -511,7 +511,8 @@ class RH(var context_: Context) {
     private fun fetchInstallReferrer(context: Context?) {
         fetch(context, object : IGoogleInstallReferrerEvents {
             override fun onGoogleInstallReferrerEventsFinished() {
-                Logger().warn("Referrer Data:  ${RHReferral_?.prefHelper?.appStoreReferrer}")
+                if (RHReferral_?.prefHelper?.appStoreReferrer.toString().trim().isNotEmpty())
+                    Logger().warn("Referrer Data:  ${RHReferral_?.prefHelper?.appStoreReferrer}")
             }
         })
     }

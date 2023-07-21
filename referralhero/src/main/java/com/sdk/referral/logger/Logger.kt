@@ -1,7 +1,7 @@
 package com.sdk.referral.logger
 
 import android.util.Log
-import java.util.*
+import java.util.Locale
 
 class Logger : ILogger {
     var LOGTAG = "ReferralHero SDK:"
@@ -35,14 +35,16 @@ class Logger : ILogger {
         if (isProductionEnvironment) {
             return
         }
-        if (logLevel!!.androidLogLevel <= Log.VERBOSE) {
+        if ((logLevel?.androidLogLevel ?: Log.VERBOSE) <= Log.VERBOSE) {
             try {
-                Log.v(LOGTAG, formatString(message, *parameters)!!)
+                formatString(message, parameters)?.let { Log.v(LOGTAG, it) }
             } catch (e: Exception) {
-                Log.e(
-                    LOGTAG,
-                    formatString(formatErrorMessage, message, Arrays.toString(parameters))!!
-                )
+                formatString(formatErrorMessage, message, parameters.contentToString())?.let {
+                    Log.e(
+                        LOGTAG,
+                        it
+                    )
+                }
             }
         }
     }
@@ -51,14 +53,16 @@ class Logger : ILogger {
         if (isProductionEnvironment) {
             return
         }
-        if (logLevel!!.androidLogLevel <= Log.DEBUG) {
+        if ((logLevel?.androidLogLevel ?: Log.DEBUG) <= Log.DEBUG) {
             try {
-                Log.d(LOGTAG, formatString(message, *parameters)!!)
+                formatString(message, parameters)?.let { Log.d(LOGTAG, it) }
             } catch (e: Exception) {
-                Log.e(
-                    LOGTAG,
-                    formatString(formatErrorMessage, message, Arrays.toString(parameters))!!
-                )
+                formatString(formatErrorMessage, message, parameters.contentToString())?.let {
+                    Log.e(
+                        LOGTAG,
+                        it
+                    )
+                }
             }
         }
     }
@@ -67,14 +71,16 @@ class Logger : ILogger {
         if (isProductionEnvironment) {
             return
         }
-        if (logLevel!!.androidLogLevel <= Log.INFO) {
+        if ((logLevel?.androidLogLevel ?: Log.INFO) <= Log.INFO) {
             try {
-                Log.i(LOGTAG, formatString(message, *parameters)!!)
+                formatString(message, parameters)?.let { Log.i(LOGTAG, it) }
             } catch (e: Exception) {
-                Log.e(
-                    LOGTAG,
-                    formatString(formatErrorMessage, message, Arrays.toString(parameters))!!
-                )
+                formatString(formatErrorMessage, message, parameters.contentToString())?.let {
+                    Log.e(
+                        LOGTAG,
+                        it
+                    )
+                }
             }
         }
     }
@@ -83,27 +89,31 @@ class Logger : ILogger {
         if (isProductionEnvironment) {
             return
         }
-        if (logLevel!!.androidLogLevel <= Log.WARN) {
+        if ((logLevel?.androidLogLevel ?: Log.WARN) <= Log.WARN) {
             try {
-                Log.w(LOGTAG, formatString(message, *parameters)!!)
+                formatString(message, parameters)?.let { Log.w(LOGTAG, it) }
             } catch (e: Exception) {
-                Log.e(
-                    LOGTAG,
-                    formatString(formatErrorMessage, message, Arrays.toString(parameters))!!
-                )
+                formatString(formatErrorMessage, message, parameters.contentToString())?.let {
+                    Log.e(
+                        LOGTAG,
+                        it
+                    )
+                }
             }
         }
     }
 
     override fun warnInProduction(message: String?, vararg parameters: Any?) {
-        if (logLevel!!.androidLogLevel <= Log.WARN) {
+        if ((logLevel?.androidLogLevel ?: Log.WARN) <= Log.WARN) {
             try {
-                Log.w(LOGTAG, formatString(message, *parameters)!!)
+                formatString(message, parameters)?.let { Log.w(LOGTAG, it) }
             } catch (e: Exception) {
-                Log.e(
-                    LOGTAG,
-                    formatString(formatErrorMessage, message, Arrays.toString(parameters))!!
-                )
+                formatString(formatErrorMessage, message, parameters.contentToString())?.let {
+                    Log.e(
+                        LOGTAG,
+                        it
+                    )
+                }
             }
         }
     }
@@ -112,14 +122,16 @@ class Logger : ILogger {
         if (isProductionEnvironment) {
             return
         }
-        if (logLevel!!.androidLogLevel <= Log.ERROR) {
+        if ((logLevel?.androidLogLevel ?: Log.ERROR) <= Log.ERROR) {
             try {
-                Log.e(LOGTAG, formatString(message, *parameters)!!)
+                formatString(message, parameters)?.let { Log.e(LOGTAG, it) }
             } catch (e: Exception) {
-                Log.e(
-                    LOGTAG,
-                    formatString(formatErrorMessage, message, Arrays.toString(parameters))!!
-                )
+                formatString(formatErrorMessage, message, parameters.contentToString())?.let {
+                    Log.e(
+                        LOGTAG,
+                        it
+                    )
+                }
             }
         }
     }
@@ -128,14 +140,16 @@ class Logger : ILogger {
         if (isProductionEnvironment) {
             return
         }
-        if (logLevel!!.androidLogLevel <= Log.ASSERT) {
+        if ((logLevel?.androidLogLevel ?: Log.ASSERT) <= Log.ASSERT) {
             try {
-                Log.println(Log.ASSERT, LOGTAG, formatString(message, *parameters)!!)
+                formatString(message, parameters)?.let { Log.println(Log.ASSERT, LOGTAG, it) }
             } catch (e: Exception) {
-                Log.e(
-                    LOGTAG,
-                    formatString(formatErrorMessage, message, Arrays.toString(parameters))!!
-                )
+                formatString(formatErrorMessage, message, parameters.contentToString())?.let {
+                    Log.e(
+                        LOGTAG,
+                        it
+                    )
+                }
             }
         }
     }
@@ -149,6 +163,16 @@ class Logger : ILogger {
     }
 
     fun formatString(format: String?, vararg args: Any?): String? {
-        return java.lang.String.format(Locale.US, format, args)
+        if (format.isNullOrBlank()) {
+            return "null"
+        }
+
+        return try {
+            java.lang.String.format(Locale.US, format, args)
+        } catch (e: Exception) {
+            // Handle any formatting exceptions here (e.g., MissingFormatArgumentException)
+            Log.e("formatString", "Formatting error: ${e.message}")
+            null
+        }
     }
 }
