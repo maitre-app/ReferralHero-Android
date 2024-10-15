@@ -23,5 +23,5 @@ class ReferralParams {
     var ip_address: String? = null
     var screen_size: String? = null
     var hosting_url: String? = null
-
+    var status: String? = null
 }

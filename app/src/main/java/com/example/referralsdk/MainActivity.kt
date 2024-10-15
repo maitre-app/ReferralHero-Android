@@ -92,6 +92,7 @@ class MainActivity : AppCompatActivity(), RHReferralCallBackListener, View.OnCli
                 referralParams.device = rh?.deviceInfo?.getDeviceModel()
                 referralParams.os_type = rh?.deviceInfo?.getOperatingSystem()
                 referralParams.screen_size = rh?.deviceInfo?.getDeviceScreenSize()
+                referralParams.status = "custom_event_pending"
 
                 Log.e("params", Gson().toJson(referralParams))
                 rh?.formSubmit(this, referralParams)
